@@ -1,7 +1,44 @@
-import * as functions from 'firebase-functions';
+import * as functions from "firebase-functions";
+import Stripe from "stripe";
 
-import mailChimpFunctions from './mailChimp/mailChimp.functions';
+import mailChimpFunctions from "./mailChimp/mailChimp.functions";
+
+const stripe = new Stripe(functions.config().stripe.testsecret, {
+  apiVersion: "2019-12-03"
+});
 
 exports.mailchimp = {
-  add: functions.https.onRequest(mailChimpFunctions.add),
+  add: functions.https.onRequest(mailChimpFunctions.add)
 };
+
+// ------------------ customer functions ---------------------
+
+// Create stripe customer (For trainees)
+
+exports.createStripeCustomer = (user: any) => {
+  stripe.customers.create({
+    email: user.lastName,
+    description: "Trime Trainee"
+  });
+  return fetch("v1/customers");
+};
+
+// adding card to customer
+
+exports.addCardToCustomer = (card: any, stripeCustomerId: string) => {
+  stripe.customers.createSource(stripeCustomerId, { source: "add token here" });
+  return fetch(`/v1/customers/${stripeCustomerId}/sources`);
+};
+
+// fetching customer
+exports.getCustomer = (stripeCustomerId: string, cardId: string) => {
+  return fetch(`/v1/customers/${stripeCustomerId}/sources/${cardId}`);
+};
+
+//------------------- ACCOUNT FUNCTIONS (TRAINERS) -------------
+
+// Create Stripe Accounts (for Trainers)
+
+// adding card to accounts
+
+// fetching
