@@ -25,9 +25,8 @@ exports.createStripeCustomer = (user: any) => {
 
 // adding card to customer
 
-exports.addCardToCustomer = (card: any, stripeCustomerId: string) => {
-  stripe.customers.createSource(stripeCustomerId, { source: "add token here" });
-  return fetch(`/v1/customers/${stripeCustomerId}/sources`);
+exports.addCardToCustomer = (cardToken: string, stripeCustomerId: string) => {
+  stripe.customers.createSource(stripeCustomerId, { source: cardToken });
 };
 
 // fetching customer
