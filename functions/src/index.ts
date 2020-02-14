@@ -17,18 +17,19 @@ exports.mailchimp = {
 
 // Create stripe customer (For trainees)
 
-exports.createStripeCustomer = (user: any) => {
-  stripe.customers.create({
+exports.createStripeCustomer = functions.firestore
+
+exports.createStripeCustomer = functions.https.onCall ( (user: any) => {
+  return stripe.customers.create({
     email: user.lastName,
     description: "Trime Trainee"
-  });
-  return fetch("v1/customers")
-};
+  })
+});
 
 // adding card to customer
 
 exports.addCardToCustomer = (cardToken: string, stripeCustomerId: string) => {
-  stripe.customers.createSource(stripeCustomerId, { source: cardToken });
+  return stripe.customers.createSource(stripeCustomerId, { source: cardToken });
 };
 
 // fetching customer
