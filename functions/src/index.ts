@@ -1,5 +1,7 @@
 import * as functions from "firebase-functions";
 import Stripe from "stripe";
+const admin = require("firebase-admin");
+admin.initializeApp({});
 
 import mailChimpFunctions from "./mailChimp/mailChimp.functions";
 
@@ -20,7 +22,7 @@ exports.createStripeCustomer = (user: any) => {
     email: user.lastName,
     description: "Trime Trainee"
   });
-  return fetch("v1/customers");
+  return fetch("v1/customers")
 };
 
 // adding card to customer
