@@ -17,29 +17,80 @@ exports.mailchimp = {
 
 // Create stripe customer (For trainees)
 
-exports.createStripeCustomer = functions.firestore
-
-exports.createStripeCustomer = functions.https.onCall ( (user: any) => {
-  return stripe.customers.create({
-    email: user.lastName,
-    description: "Trime Trainee"
-  })
+exports.createStripeCustomer = functions.https.onCall((user, context) => {
+  const email = user.email;
+  return stripe.customers
+    .create({
+      email: email,
+      description: "This is a Trime Trainee"
+    })
+    .then(
+      function(stripeCustomerId) {
+        console.log("Customer successfully created");
+        console.log(stripeCustomerId.id);
+        return stripeCustomerId.id;
+      },
+      function(error) {
+        throw new functions.https.HttpsError(error.code, error.message);
+      }
+    );
 });
 
 // adding card to customer
 
-exports.addCardToCustomer = (cardToken: string, stripeCustomerId: string) => {
-  return stripe.customers.createSource(stripeCustomerId, { source: cardToken });
-};
+exports.addCardToCustomer = functions.https.onCall((data, context) => {
+  const stripeCustomerId = data.stripeCustomerId;
+  const cardToken = data.cardToken;
+  return stripe.customers
+    .createSource(stripeCustomerId, {
+      source: cardToken
+    })
+    .then(
+      function() {
+        console.log("Customer Card added successfully");
+      },
+      function(error) {
+        throw new functions.https.HttpsError(error.code, error.message);
+      }
+    );
+});
 
 // fetching customer
-exports.getCustomer = (stripeCustomerId: string, cardId: string) => {
-  return fetch(`/v1/customers/${stripeCustomerId}/sources/${cardId}`);
-};
+
+exports.getCustomer = functions.https.onCall((data, context) => {
+  const stripeCustomerID = data.id;
+
+  return stripe.customers
+    .retrieve(stripeCustomerID)
+    .then(customer => {
+      return { customer: customer };
+    })
+    .catch(error => {
+      throw new functions.https.HttpsError(error.code, error.message);
+    });
+});
 
 //------------------- ACCOUNT FUNCTIONS (TRAINERS) -------------
 
 // Create Stripe Accounts (for Trainers)
+
+exports.createStripeAccount = functions.https.onCall((data, context) => {
+  const email = data.email;
+  return stripe.accounts
+    .create({
+      email: email
+    })
+    .then(
+      function(stripeAccountId) {
+        console.log("Account successfully created");
+        console.log(stripeAccountId);
+        return { AccountId: stripeAccountId };
+      },
+      function(error) {
+        throw new functions.https.HttpsError(error.code, error.message);
+      }
+    );
+});
 
 // adding card to accounts
 
