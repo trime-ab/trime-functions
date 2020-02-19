@@ -84,7 +84,7 @@ exports.createStripeAccount = functions.https.onCall((data, context) => {
       function(stripeAccountId) {
         console.log("Account successfully created");
         console.log(stripeAccountId);
-        return { AccountId: stripeAccountId };
+        return stripeAccountId.id;
       },
       function(error) {
         throw new functions.https.HttpsError(error.code, error.message);
@@ -92,6 +92,23 @@ exports.createStripeAccount = functions.https.onCall((data, context) => {
     );
 });
 
-// adding card to accounts
+// Adding bank account to accounts
 
-// fetching
+exports.addBankToAccount = functions.https.onCall((data, context) => {
+  const stripeAccountId = data.stripeAccountId;
+  const Token = data.Token;
+  return stripe.accounts
+    .createExternalAccount(stripeAccountId, {
+      external_account: Token
+    })
+    .then(
+      function() {
+        console.log("Bank Account added successfully");
+      },
+      function(error) {
+        throw new functions.https.HttpsError(error.code, error.message);
+      }
+    );
+});
+
+// fetching Accounts
