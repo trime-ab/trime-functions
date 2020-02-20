@@ -78,7 +78,10 @@ exports.createStripeAccount = functions.https.onCall((data, context) => {
   const email = data.email;
   return stripe.accounts
     .create({
-      email: email
+      type: "custom",
+      country: "SE",
+      email: email,
+      requested_capabilities: ["card_payments", "transfers"]
     })
     .then(
       function(stripeAccountId) {
