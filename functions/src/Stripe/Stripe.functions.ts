@@ -29,13 +29,14 @@ class StripeFunctions {
     cardTokenId: string
   }) {
     try {
+      console.log('adding card to customer', data)
       await stripe.customers.createSource(data.stripeCustomerId, {
         source: data.cardTokenId,
       })
       console.log('Customer Card added successfully')
     } catch (error) {
       console.warn('Unable to add card to customer', data.stripeCustomerId)
-      throw error
+      throw new functions.https.HttpsError(error.code, error.message)
     }
   }
 
@@ -45,7 +46,7 @@ class StripeFunctions {
       return customer
     } catch (error) {
       console.warn('Unable to get customer', stripeCustomerId)
-      throw error
+      throw new functions.https.HttpsError(error.code, error.message)
     }
   }
 
@@ -64,7 +65,7 @@ class StripeFunctions {
       return account.id
     } catch (error) {
       console.warn('Unable to create account')
-      throw error
+      throw new functions.https.HttpsError(error.code, error.message)
     }
   }
 
@@ -80,7 +81,7 @@ class StripeFunctions {
       console.log('Bank Account added successfully')
     } catch (error) {
       console.warn('Unable to add bank account', data.stripeAccountId)
-      throw error
+      throw new functions.https.HttpsError(error.code, error.message)
     }
   }
 }
