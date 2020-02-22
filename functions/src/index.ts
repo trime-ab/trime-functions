@@ -76,11 +76,33 @@ exports.getCustomer = functions.https.onCall((data, context) => {
 
 exports.createStripeAccount = functions.https.onCall((data, context) => {
   const email = data.email;
+
   return stripe.accounts
     .create({
       type: "custom",
       country: "SE",
-      email: email,
+      business_type: "individual",
+      individual: {
+        address: {
+          line1: data.line1,
+          line2: data.line2,
+          postal_code: data.postCode,
+          city: data.city,
+          state: data.state
+        },
+        dob: {
+          day: data.day,
+          month: data.month,
+          year: data.year
+        },
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: email,
+        phone: data.phone
+      },
+      tos_acceptance: {
+        date: Math.floor(Date.now() / 1000)
+      },
       requested_capabilities: ["card_payments", "transfers"]
     })
     .then(
@@ -115,3 +137,7 @@ exports.addBankToAccount = functions.https.onCall((data, context) => {
 });
 
 // fetching Accounts
+
+
+// Payments 
+
