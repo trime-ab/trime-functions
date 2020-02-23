@@ -29,6 +29,7 @@ class StripeFunctions {
     cardTokenId: string;
   }) {
     try {
+      console.log('adding card to customer', data)
       await stripe.customers.createSource(data.stripeCustomerId, {
         source: data.cardTokenId
       });
