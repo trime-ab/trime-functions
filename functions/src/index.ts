@@ -16,4 +16,5 @@ exports.stripe = {
   getCustomer: functions.https.onCall(stripeFunctions.getCustomer),
   createAccount: functions.https.onCall(stripeFunctions.createAccount),
   addBankToAccount: functions.https.onCall(stripeFunctions.addBankToAccount),
+  addCardToAccount: functions.https.onCall(stripeFunctions.addCardToAccount),
 }
