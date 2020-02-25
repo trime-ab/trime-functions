@@ -7,10 +7,10 @@ const stripe = new Stripe(functions.config().stripe.testsecret, {
 });
 
 class StripeFunctions {
-  async createCustomer(email: string) {
+  async createCustomer(data: { email: string }) {
     try {
       const customer = await stripe.customers.create({
-        email: email,
+        email: data.email,
         description: "This is a Trime Trainee"
       });
 
@@ -29,7 +29,7 @@ class StripeFunctions {
     cardTokenId: string;
   }) {
     try {
-      console.log('adding card to customer', data)
+      console.log("adding card to customer", data);
       await stripe.customers.createSource(data.stripeCustomerId, {
         source: data.cardTokenId
       });
@@ -50,33 +50,34 @@ class StripeFunctions {
     }
   }
 
-  async createAccount(data: { trainer: any }) {
+  async createAccount(data: {
+    address: any;
+    phone: string;
+    firstName: string;
+    lastName: string;
+    dob: any;
+    email: string;
+  }) {
     try {
       const account = await stripe.accounts.create({
         type: "custom",
         country: "SE",
-        email: data.trainer.email,
+        email: data.email,
         business_type: "individual",
         individual: {
           address: {
-            line1: data.trainer.address.line1,
-            line2: data.trainer.address.line2,
-            postal_code: data.trainer.address.postalCode,
-            city: data.trainer.address.city,
-            state: data.trainer.address.state
+            line1: data.address.line1,
+            line2: data.address.line2,
+            postal_code: data.address.postalCode,
+            city: data.address.city,
+            state: data.address.state,
+            country: data.address.country
           },
-          dob: {
-            day: data.trainer.dob.day,
-            month: data.trainer.dob.day,
-            year: data.trainer.dob.day
-          },
-          first_name: data.trainer.firstName,
-          last_name: data.trainer.lastName,
-          email: data.trainer.email,
-          phone: data.trainer.phone
-        },
-        tos_acceptance: {
-          date: Math.floor(Date.now() / 1000)
+          dob: data.dob,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          // phone: data.phone,
+          email: data.email
         },
         // eslint-disable-next-line @typescript-eslint/camelcase
         requested_capabilities: ["card_payments", "transfers"]
@@ -97,8 +98,9 @@ class StripeFunctions {
     cardTokenId: string;
   }) {
     try {
-      await stripe.customers.createSource(data.stripeAccountId, {
-        source: data.cardTokenId
+      console.log("adding card to account", data);
+      await stripe.accounts.createExternalAccount(data.stripeAccountId, {
+        external_account: data.cardTokenId
       });
       console.log("Customer Card added successfully");
     } catch (error) {
@@ -128,7 +130,7 @@ class StripeFunctions {
       const account = await stripe.accounts.retrieve(stripeAccountId);
       return account;
     } catch (error) {
-      console.warn("Unable to get customer", stripeAccountId);
+      console.warn("Unable to get account", stripeAccountId);
       throw error;
     }
   }
