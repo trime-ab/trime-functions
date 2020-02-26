@@ -66,7 +66,7 @@ class StripeFunctions {
     try {
       await stripe.customers.del(data.stripeCustomerId);
     } catch (error) {
-      console.log("Unable to delete account");
+      console.warn("Unable to delete account");
     }
   }
 
@@ -168,11 +168,11 @@ class StripeFunctions {
     }
   }
 
-  async deleteBankAccount(data: { stripeAccountId: string; id: string }) {
+  async deleteBankAccount(data: { stripeAccountId: string; data: string }) {
     try {
       await stripe.accounts.deleteExternalAccount(
         data.stripeAccountId,
-        data.id
+        data.data
       );
     } catch (error) {
       console.warn("Unable to delete Bank account from account");
@@ -183,7 +183,25 @@ class StripeFunctions {
     try {
       await stripe.accounts.del(data.stripeAccountId);
     } catch (error) {
-      console.log("Unable to delete account");
+      console.warn("Unable to delete account");
+    }
+  }
+
+  async makePayment(data: { payment: any }) {
+    try {
+      await stripe.charges.create({
+        amount: data.payment.amount,
+        currency: 'sek',
+        source: data.payment.stripeCustomerId,
+        application_fee_amount: data.payment.fee,
+        description: "A charge for a trainer booking.",
+        transfer_data: {
+          destination: data.payment.stripeCustomerId,
+        },
+        on_behalf_of: data.payment.trainer.firstName
+      });
+    } catch (error) {
+      console.warn("Unable to make payment");
     }
   }
 }

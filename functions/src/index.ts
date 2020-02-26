@@ -1,14 +1,14 @@
-import * as functions from 'firebase-functions'
+import * as functions from "firebase-functions";
 
-import mailChimpFunctions from './mailChimp/mailChimp.functions'
-import { stripeFunctions } from './Stripe/Stripe.functions'
+import mailChimpFunctions from "./mailChimp/mailChimp.functions";
+import { stripeFunctions } from "./Stripe/Stripe.functions";
 
-const admin = require('firebase-admin')
-admin.initializeApp({})
+const admin = require("firebase-admin");
+admin.initializeApp({});
 
 exports.mailchimp = {
-  add: functions.https.onRequest(mailChimpFunctions.add),
-}
+  add: functions.https.onRequest(mailChimpFunctions.add)
+};
 
 exports.stripe = {
   createCustomer: functions.https.onCall(stripeFunctions.createCustomer),
@@ -22,4 +22,5 @@ exports.stripe = {
   getAccount: functions.https.onCall(stripeFunctions.getAccount),
   deleteBankAccount: functions.https.onCall(stripeFunctions.deleteBankAccount),
   deleteAccount: functions.https.onCall(stripeFunctions.deleteAccount),
-}
+  makePayment: functions.https.onCall(stripeFunctions.makePayment)
+};
