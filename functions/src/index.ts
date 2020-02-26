@@ -14,8 +14,12 @@ exports.stripe = {
   createCustomer: functions.https.onCall(stripeFunctions.createCustomer),
   addCardToCustomer: functions.https.onCall(stripeFunctions.addCardToCustomer),
   getCustomer: functions.https.onCall(stripeFunctions.getCustomer),
+  deleteCard: functions.https.onCall(stripeFunctions.deleteCard),
+  deleteCustomer: functions.https.onCall(stripeFunctions.deleteCustomer),
   createAccount: functions.https.onCall(stripeFunctions.createAccount),
   addBankToAccount: functions.https.onCall(stripeFunctions.addBankToAccount),
   addCardToAccount: functions.https.onCall(stripeFunctions.addCardToAccount),
   getAccount: functions.https.onCall(stripeFunctions.getAccount),
+  deleteBankAccount: functions.https.onCall(stripeFunctions.deleteBankAccount),
+  deleteAccount: functions.https.onCall(stripeFunctions.deleteAccount),
 }

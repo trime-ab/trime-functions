@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 
 import Stripe from "stripe";
+import { request } from "express";
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
   apiVersion: "2019-12-03"
@@ -50,6 +51,22 @@ class StripeFunctions {
     }
   }
 
+  async deleteCard(data: { stripeCustomerId: string; id: string }) {
+    try {
+      await stripe.customers.deleteSource(data.stripeCustomerId, data.id);
+    } catch (error) {
+      console.warn("Unable to delete card from account", data.id);
+    }
+  }
+
+  async deleteCustomer(data: { stripeCustomerId: string }) {
+    try {
+      await stripe.customers.del(data.stripeCustomerId);
+    } catch (error) {
+      console.log("Unable to delete account");
+    }
+  }
+
   async createAccount(data: {
     address: any;
     phone: string;
@@ -64,6 +81,9 @@ class StripeFunctions {
         country: "SE",
         email: data.email,
         business_type: "individual",
+        default_currency: "sek",
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        requested_capabilities: ["card_payments", "transfers"],
         individual: {
           address: {
             line1: data.address.line1,
@@ -76,11 +96,21 @@ class StripeFunctions {
           dob: data.dob,
           first_name: data.firstName,
           last_name: data.lastName,
-          // phone: data.phone,
+          phone: data.phone,
           email: data.email
         },
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        requested_capabilities: ["card_payments", "transfers"]
+        settings: {
+          payments: {
+            statement_descriptor: "Trime.App" + data.email
+          },
+          payouts: {
+            debit_negative_balances: true
+          }
+        },
+        tos_acceptance: {
+          date: Math.floor(Date.now() / 1000),
+          ip: request.connection.remoteAddress
+        }
       });
 
       console.log("Account successfully created");
@@ -104,7 +134,7 @@ class StripeFunctions {
       });
       console.log("Customer Card added successfully");
     } catch (error) {
-      console.warn("Unable to add card to customer", data.stripeAccountId);
+      console.warn("Unable to add card to customer");
       throw error;
     }
   }
@@ -132,6 +162,25 @@ class StripeFunctions {
     } catch (error) {
       console.warn("Unable to get account", stripeAccountId);
       throw error;
+    }
+  }
+
+  async deleteBankAccount(data: { stripeAccountId: string; id: string }) {
+    try {
+      await stripe.accounts.deleteExternalAccount(
+        data.stripeAccountId,
+        data.id
+      );
+    } catch (error) {
+      console.warn("Unable to delete Bank account from account");
+    }
+  }
+
+  async deleteAccount(data: { stripeAccountId: string }) {
+    try {
+      await stripe.accounts.del(data.stripeAccountId);
+    } catch (error) {
+      console.log("Unable to delete account");
     }
   }
 }
