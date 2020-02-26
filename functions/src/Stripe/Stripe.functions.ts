@@ -51,11 +51,14 @@ class StripeFunctions {
     }
   }
 
-  async deleteCard(data: { stripeCustomerId: string; id: string }) {
+  async deleteCard(data: { stripeCustomerId: string; default_source: string }) {
     try {
-      await stripe.customers.deleteSource(data.stripeCustomerId, data.id);
+      await stripe.customers.deleteSource(
+        data.stripeCustomerId,
+        data.default_source
+      );
     } catch (error) {
-      console.warn("Unable to delete card from account", data.id);
+      console.warn("Unable to delete card from account", data.default_source);
     }
   }
 
