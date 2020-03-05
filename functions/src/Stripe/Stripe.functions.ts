@@ -1,7 +1,6 @@
 import * as functions from "firebase-functions";
 
 import Stripe from "stripe";
-import { request } from "express";
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
   apiVersion: "2019-12-03"
@@ -96,23 +95,27 @@ class StripeFunctions {
             state: data.address.state,
             country: data.address.country
           },
-          dob: data.dob,
+          dob: {
+            day: data.dob.day,
+            month: data.dob.month,
+            year: data.dob.year
+          },
           first_name: data.firstName,
           last_name: data.lastName,
-          phone: data.phone,
+          // phone: data.phone,
           email: data.email
         },
         settings: {
           payments: {
-            statement_descriptor: "Trime.App" + data.email
+            statement_descriptor:
+              "Trime.App" + `${data.firstName} ${data.lastName}`
           },
           payouts: {
             debit_negative_balances: true
           }
         },
         tos_acceptance: {
-          date: Math.floor(Date.now() / 1000),
-          ip: request.connection.remoteAddress
+          date: Math.floor(Date.now() / 1000)
         }
       });
 
@@ -187,18 +190,24 @@ class StripeFunctions {
     }
   }
 
-  async makePayment(data: { payment: any }) {
+  async makePayment(data: {
+    stripeAccountId: string;
+    stripeCustomerId: string;
+    firstName: string;
+    lastName: string;
+    payment: any;
+  }) {
     try {
       await stripe.charges.create({
         amount: data.payment.amount,
-        currency: 'sek',
-        source: data.payment.stripeCustomerId,
-        application_fee_amount: data.payment.fee,
+        currency: "sek",
+        source: data.stripeCustomerId,
+        application_fee_amount: data.payment.trimeAmount,
         description: "A charge for a trainer booking.",
         transfer_data: {
-          destination: data.payment.stripeCustomerId,
+          destination: data.stripeAccountId
         },
-        on_behalf_of: data.payment.trainer.firstName
+        on_behalf_of: `${data.firstName} ${data.lastName}`
       });
     } catch (error) {
       console.warn("Unable to make payment");
