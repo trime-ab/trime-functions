@@ -108,15 +108,15 @@ class StripeFunctions {
         settings: {
           payments: {
             statement_descriptor:
-              "Trime.App" + `${data.firstName} ${data.lastName}`
+              `${data.firstName} ${data.lastName}`
           },
           payouts: {
             debit_negative_balances: true
           }
         },
-        tos_acceptance: {
-          date: Math.floor(Date.now() / 1000)
-        }
+        // tos_acceptance: {
+        //   date: Math.floor(Date.now() / 1000)
+        // }
       });
 
       console.log("Account successfully created");
@@ -147,12 +147,12 @@ class StripeFunctions {
 
   async addBankToAccount(data: {
     stripeAccountId: string;
-    bankTokenId: string;
+    bankAccountTokenId: string;
   }) {
     try {
       await stripe.accounts.createExternalAccount(data.stripeAccountId, {
         // eslint-disable-next-line @typescript-eslint/camelcase
-        external_account: data.bankTokenId
+        external_account: data.bankAccountTokenId
       });
       console.log("Bank Account added successfully");
     } catch (error) {
@@ -163,7 +163,9 @@ class StripeFunctions {
 
   async getAccount(stripeAccountId: string) {
     try {
+      console.log(stripeAccountId)
       const account = await stripe.accounts.retrieve(stripeAccountId);
+      console.log(account)
       return account;
     } catch (error) {
       console.warn("Unable to get account", stripeAccountId);
@@ -191,8 +193,6 @@ class StripeFunctions {
   }
 
   async makePayment(data: {
-    stripeAccountId: string;
-    stripeCustomerId: string;
     firstName: string;
     lastName: string;
     payment: any;
@@ -201,11 +201,11 @@ class StripeFunctions {
       await stripe.charges.create({
         amount: data.payment.amount,
         currency: "sek",
-        source: data.stripeCustomerId,
+        source: data.payment.stripeCustomerId,
         application_fee_amount: data.payment.trimeAmount,
         description: "A charge for a trainer booking.",
         transfer_data: {
-          destination: data.stripeAccountId
+          destination: data.payment.stripeAccountId
         },
         on_behalf_of: `${data.firstName} ${data.lastName}`
       });
