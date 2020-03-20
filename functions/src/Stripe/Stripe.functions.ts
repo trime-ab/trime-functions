@@ -114,9 +114,10 @@ class StripeFunctions {
             debit_negative_balances: true
           }
         },
-        // tos_acceptance: {
-        //   date: Math.floor(Date.now() / 1000)
-        // }
+        //  tos_acceptance: {
+        //    date: Math.floor(Date.now() / 1000),
+        //    ip: request.ip
+        //  }
       });
 
       console.log("Account successfully created");
@@ -173,11 +174,11 @@ class StripeFunctions {
     }
   }
 
-  async deleteBankAccount(data: { stripeAccountId: string; data: string }) {
+  async deleteBankAccount(data: { stripeAccountId: string; data: any }) {
     try {
       await stripe.accounts.deleteExternalAccount(
         data.stripeAccountId,
-        data.data
+        data.data.id,
       );
     } catch (error) {
       console.warn("Unable to delete Bank account from account");
@@ -195,19 +196,24 @@ class StripeFunctions {
   async makePayment(data: {
     firstName: string;
     lastName: string;
-    payment: any;
+    amount: any;
+    stripeCustomerId: string;
+    stripeAccountId: string;
+    trimeAmount: number; 
   }) {
     try {
-      await stripe.charges.create({
-        amount: data.payment.amount,
+      await stripe.paymentIntents.create({
+        amount: data.amount,
         currency: "sek",
-        source: data.payment.stripeCustomerId,
-        application_fee_amount: data.payment.trimeAmount,
-        description: "A charge for a trainer booking.",
+        confirm: true,
+        payment_method_types: ['card'],
+        source: data.stripeCustomerId,
+        application_fee_amount: data.trimeAmount,
+        description: "A charge for booking.",
         transfer_data: {
-          destination: data.payment.stripeAccountId
+          destination: data.stripeAccountId
         },
-        on_behalf_of: `${data.firstName} ${data.lastName}`
+        on_behalf_of: `${data.firstName} ${data.lastName}`,
       });
     } catch (error) {
       console.warn("Unable to make payment");
