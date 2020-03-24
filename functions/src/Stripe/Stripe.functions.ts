@@ -107,13 +107,12 @@ class StripeFunctions {
         },
         settings: {
           payments: {
-            statement_descriptor:
-              `${data.firstName} ${data.lastName}`
+            statement_descriptor: `${data.firstName} ${data.lastName}`
           },
           payouts: {
             debit_negative_balances: true
           }
-        },
+        }
         //  tos_acceptance: {
         //    date: Math.floor(Date.now() / 1000),
         //    ip: request.ip
@@ -164,9 +163,9 @@ class StripeFunctions {
 
   async getAccount(stripeAccountId: string) {
     try {
-      console.log(stripeAccountId)
+      console.log(stripeAccountId);
       const account = await stripe.accounts.retrieve(stripeAccountId);
-      console.log(account)
+      console.log(account);
       return account;
     } catch (error) {
       console.warn("Unable to get account", stripeAccountId);
@@ -178,7 +177,7 @@ class StripeFunctions {
     try {
       await stripe.accounts.deleteExternalAccount(
         data.stripeAccountId,
-        data.data.id,
+        data.data.id
       );
     } catch (error) {
       console.warn("Unable to delete Bank account from account");
@@ -194,29 +193,27 @@ class StripeFunctions {
   }
 
   async makePayment(data: {
-    firstName: string;
-    lastName: string;
+    trainerFirstName: string;
+    trainerLastName: string;
     amount: any;
     stripeCustomerId: string;
     stripeAccountId: string;
-    trimeAmount: number; 
+    trimeAmount: number;
   }) {
     try {
-      await stripe.paymentIntents.create({
+      await stripe.charges.create({
         amount: data.amount,
         currency: "sek",
-        confirm: true,
-        payment_method_types: ['card'],
-        source: data.stripeCustomerId,
+        customer: data.stripeCustomerId,
         application_fee_amount: data.trimeAmount,
         description: "A charge for booking.",
         transfer_data: {
           destination: data.stripeAccountId
         },
-        on_behalf_of: `${data.firstName} ${data.lastName}`,
+        on_behalf_of: `${data.trainerFirstName} ${data.trainerLastName}`
       });
     } catch (error) {
-      console.warn("Unable to make payment");
+      console.warn("Unable to make payment", error);
     }
   }
 }
