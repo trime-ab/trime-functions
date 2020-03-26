@@ -70,12 +70,13 @@ class StripeFunctions {
   }
 
   async createAccount(data: {
+    email: string;
     address: any;
+    dob: any;
     phone: string;
     firstName: string;
     lastName: string;
-    dob: any;
-    email: string;
+    trainerIp: any;
   }) {
     try {
       const account = await stripe.accounts.create({
@@ -112,11 +113,11 @@ class StripeFunctions {
           payouts: {
             debit_negative_balances: true
           }
+        },
+        tos_acceptance: {
+          date: Math.floor(Date.now() / 1000),
+          ip: data.trainerIp
         }
-        //  tos_acceptance: {
-        //    date: Math.floor(Date.now() / 1000),
-        //    ip: request.ip
-        //  }
       });
 
       console.log("Account successfully created");
@@ -195,7 +196,7 @@ class StripeFunctions {
   async makePayment(data: {
     trainerFirstName: string;
     trainerLastName: string;
-    amount: any;
+    amount: number;
     stripeCustomerId: string;
     stripeAccountId: string;
     trimeAmount: number;
@@ -210,7 +211,7 @@ class StripeFunctions {
         transfer_data: {
           destination: data.stripeAccountId
         },
-        on_behalf_of: `${data.trainerFirstName} ${data.trainerLastName}`
+        on_behalf_of: data.stripeAccountId
       });
     } catch (error) {
       console.warn("Unable to make payment", error);
