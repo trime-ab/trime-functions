@@ -83,6 +83,13 @@ class StripeFunctions {
         type: "custom",
         country: "SE",
         email: data.email,
+        business_profile: {
+          mcc: "8999",
+          product_description:
+            "This is the Trime Trainer. Money is paid from a customer to this account",
+          support_phone: data.phone,
+          url: "www.trime.app"
+        },
         business_type: "individual",
         default_currency: "sek",
         // eslint-disable-next-line @typescript-eslint/camelcase
@@ -202,7 +209,7 @@ class StripeFunctions {
     trimeAmount: number;
   }) {
     try {
-      await stripe.charges.create({
+      const payment = await stripe.charges.create({
         amount: data.amount,
         currency: "sek",
         customer: data.stripeCustomerId,
@@ -213,8 +220,14 @@ class StripeFunctions {
         },
         on_behalf_of: data.stripeAccountId
       });
+
+      console.log("Payment successfully made");
+      console.log(payment.id);
+
+      return payment.id;
     } catch (error) {
       console.warn("Unable to make payment", error);
+      throw error;
     }
   }
 }
