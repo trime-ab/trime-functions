@@ -181,14 +181,16 @@ class StripeFunctions {
     }
   }
 
-  async deleteBankAccount(data: { stripeAccountId: string; data: any }) {
+  async deleteBankAccount(data: { stripeAccountId: string; id: string }) {
     try {
+      console.log("bank account id is ", data.id);
+      console.log("stripe account number is", data.stripeAccountId);
       await stripe.accounts.deleteExternalAccount(
         data.stripeAccountId,
-        data.data.id
+        data.id
       );
     } catch (error) {
-      console.warn("Unable to delete Bank account from account");
+      console.warn("Unable to delete Bank account from account", error);
     }
   }
 
@@ -196,7 +198,7 @@ class StripeFunctions {
     try {
       await stripe.accounts.del(data.stripeAccountId);
     } catch (error) {
-      console.warn("Unable to delete account");
+      console.warn("Unable to delete account", error);
     }
   }
 
