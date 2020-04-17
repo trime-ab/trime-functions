@@ -1,9 +1,8 @@
 import admin = require("firebase-admin");
 
 class NotificationsFunctions {
-
   async onBookedDeal(snap: any) {
-    // getting session 
+    // getting session
     const sessionData = snap.data();
     const traineeId = sessionData.traineeId;
     const trainerId = sessionData.trainerId;
@@ -11,24 +10,25 @@ class NotificationsFunctions {
 
     const db = admin.firestore();
 
-    // getting the trainee 
+    // getting the trainee
     const traineeRef = db.collection("trainees").doc(traineeId);
     const traineeSnapshot = await traineeRef.get();
     const trainee = traineeSnapshot.data();
 
     // fetching device keys
-    const devicesRef = db.collection("devices")
-    const queries: Promise<FirebaseFirestore.QuerySnapshot>[] = trainerId.fcmKeys
-    .map((fcmKeys: { "": any; }) => {
-      return devicesRef.where('fcmKeys', "==", fcmKeys).get();
+    const devicesRef = db.collection("devices");
+    const queries: Promise<
+      FirebaseFirestore.QuerySnapshot
+    >[] = trainerId.fcmKeys.map((fcmKeys: { "": any }) => {
+      return devicesRef.where("fcmKeys", "==", fcmKeys).get();
     });
 
-    // Notification Content
+    // Notification Content`
 
     const payload = {
       notification: {
         title: "New session booked"!,
-        body: `${trainee.firstName} ${trainee.lastName} has booked a session with you on ${startTime}`,
+        body: `${trainee?.firstName} ${trainee?.lastName} has booked a session with you on ${startTime}`,
       },
     };
 
