@@ -17,18 +17,18 @@ class NotificationsFunctions {
 
     // fetching device keys
     const devicesRef = db.collection("devices");
-    const queries: Promise<
-      FirebaseFirestore.QuerySnapshot
-    >[] = trainerId.fcmKeys.map((fcmKeys: { "": any }) => {
-      return devicesRef.where("fcmKeys", "==", fcmKeys).get();
+    const queries: Promise<FirebaseFirestore.QuerySnapshot>[] = trainerId.fcmKeys
+      .map((fcmKeys: string) => {
+      return devicesRef.where("trainerId", "==", trainerId).get();
     });
+    console.log(queries)
 
     // Notification Content`
 
     const payload = {
       notification: {
         title: "New session booked"!,
-        body: `${trainee?.firstName} ${trainee?.lastName} has booked a session with you on ${startTime}`,
+        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you on ${startTime}`,
       },
     };
 
