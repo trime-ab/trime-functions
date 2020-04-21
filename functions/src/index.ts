@@ -28,6 +28,5 @@ exports.stripe = {
 
 exports.notifications = {
   onBookedDeal: functions.firestore.document("sessions/{sessions}").onCreate(notificationsFunctions.onBookedDeal),
-  // traineeSessionReminder: functions.firestore.document('sessions/{sessions}').onCreate(notificationsFunctions.traineeSessionReminder),
-  // trainerSessionReminder: functions.firestore.document('sessions/{sessions}').onCreate(notificationsFunctions.trainerSessionReminder),
+  traineeSessionReminder: functions.firestore.document('sessions/{sessions}').onCreate(notificationsFunctions.traineeSessionReminder),
 };
