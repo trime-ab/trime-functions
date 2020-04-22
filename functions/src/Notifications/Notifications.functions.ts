@@ -20,14 +20,6 @@ class NotificationsFunctions {
     const trainerSnapshot = await trainerRef.get();
     const trainer = trainerSnapshot.data();
 
-    // fetching device keys
-    const devicesRef = db.collection("devices");
-    const queries: Promise<FirebaseFirestore.QuerySnapshot>[] = trainerId.fcmKeys
-      .map((fcmKeys: string[]) => {
-      return devicesRef.where("userId", "==", trainer.userId).get();
-    });
-    console.log(queries)
-
     // Notification Content`
 
     const payload = {
@@ -37,100 +29,63 @@ class NotificationsFunctions {
       },
     };
 
-    return Promise.all(queries)
-      .then((querySnapshots) => {
-        const fcmKeys: any = [];
-        querySnapshots.forEach((snapShot) => {
-          if (snapShot) {
-            snapShot.docs.forEach((doc) => {
-              if (doc) {
-                const fcmKey = doc.data().fcmKeys;
-                if (fcmKey) {
-                  fcmKeys.push(fcmKey);
-                }
-              }
-            });
-          }
-        });
+    // fetching device keys and sending notification
+    const devicesRef = db
+      .collection("devices")
+      .where("userId", "==", trainer?.userId);
+    const devices = await devicesRef.get();
 
-        if (fcmKeys.length === 0) {
-          return Promise.resolve(null);
-        } else {
-          return admin.messaging().sendToDevice(fcmKeys, payload);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        return Promise.resolve(null);
-      });
+    let fcmKeys: string[] = [];
+
+    devices.forEach((result) => {
+      const fcmKey = result.data().fcmKeys;
+
+      fcmKeys = fcmKey;
+    });
+    console.log(`Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
+    return admin.messaging().sendToDevice(fcmKeys, payload);
+
   }
-  async traineeSessionReminder(snap: any) {
-    // getting session data
-    const sessionData = snap.data();
-    const traineeId = sessionData.traineeId;
-    const trainerId = sessionData.trainerId;
-    const startTime = sessionData.start;
 
+  async bookedDealTest(data: { traineeId: string; trainerId: string }) {
     const db = admin.firestore();
 
-    // getting trainer Ref
-    const trainerRef = db.collection("trainers").doc(trainerId);
-    const trainerSnapshot = await trainerRef.get();
-    const trainer = trainerSnapshot.data();
-
-    // getting trainee data
-    const traineeRef = db.collection("trainees").doc(traineeId);
+    // getting the trainee
+    const traineeRef = db.collection("trainees").doc(data.traineeId);
     const traineeSnapshot = await traineeRef.get();
     const trainee = traineeSnapshot.data();
 
-    // fetching device Keys
-    const devicesRef = db.collection("devices");
-    const queries: Promise<FirebaseFirestore.QuerySnapshot>[] = traineeId.fcmKeys
-        .map((fcmKeys: string[]) => {
-          return devicesRef.where("userId", "==", trainee.userId).get();
-        });
-    console.log(queries)
+    // getting the trainer
+    const trainerRef = db.collection("trainers").doc(data.trainerId);
+    const trainerSnapshot = await trainerRef.get();
+    const trainer = trainerSnapshot.data();
 
-    // notification Content
+    // notification details
 
-    const payload  = {
+    const payload = {
       notification: {
-        title: "Session Reminder" ,
-        body: `You have a session in one hour with ${trainer?.firstName} ${trainer?.lastName}`
-      }
+        title: "New session booked!",
+        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session`,
+      },
     };
 
+    // fetching device keys
+    const devicesRef = db
+      .collection("devices")
+      .where("userId", "==", trainer?.userId);
+    const devices = await devicesRef.get();
 
+    let fcmKeys: string[] = [];
 
-    return Promise.all(queries)
-        .then((querySnapshots) => {
-          const fcmKeys: any = [];
-          querySnapshots.forEach((snapShot) => {
-            if (snapShot) {
-              snapShot.docs.forEach((doc) => {
-                if (doc) {
-                  const fcmKey = doc.data().fcmKeys;
-                  if (fcmKey) {
-                    fcmKeys.push(fcmKey);
-                  }
-                }
-              });
-            }
-          });
+    devices.forEach((result) => {
+      const fcmKey = result.data().fcmKeys;
 
-          if (fcmKeys.length === 0) {
-            return Promise.resolve(null);
-          } else {
-            return admin.messaging().sendToDevice(fcmKeys, payload);
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-          return Promise.resolve(null);
-        });
+      fcmKeys = fcmKey;
+    });
+    console.log(`Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
+    return admin.messaging().sendToDevice(fcmKeys, payload);
+
   }
-
-
 }
 
 export const notificationsFunctions = new NotificationsFunctions();
