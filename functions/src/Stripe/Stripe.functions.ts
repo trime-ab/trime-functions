@@ -203,12 +203,10 @@ class StripeFunctions {
   }
 
   async makePayment(data: {
-    trainerFirstName: string;
-    trainerLastName: string;
     amount: number;
     stripeCustomerId: string;
-    stripeAccountId: string;
     trimeAmount: number;
+    stripeAccountId: string;
   }) {
     try {
       const payment = await stripe.charges.create({

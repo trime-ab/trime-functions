@@ -6,7 +6,7 @@ class NotificationsFunctions {
     const sessionData = snap.data();
     const traineeId = sessionData.traineeId;
     const trainerId = sessionData.trainerId;
-    const startTime = sessionData.start;
+    // const startTime = sessionData.start;
 
     const db = admin.firestore();
 
@@ -25,7 +25,10 @@ class NotificationsFunctions {
     const payload = {
       notification: {
         title: "New session booked!",
-        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you on ${startTime}`,
+        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`,
+      },
+      data: {
+        userId: trainerId
       },
     };
 
@@ -42,9 +45,12 @@ class NotificationsFunctions {
 
       fcmKeys = fcmKey;
     });
-    console.log(`Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
+    console.log(
+      `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
+    );
+    console.log('fcm keys',fcmKeys)
+    console.log('payload', payload)
     return admin.messaging().sendToDevice(fcmKeys, payload);
-
   }
 
   async bookedDealTest(data: { traineeId: string; trainerId: string }) {
@@ -67,6 +73,9 @@ class NotificationsFunctions {
         title: "New session booked!",
         body: `${trainee?.firstName} ${trainee?.lastName} booked a new session`,
       },
+      data: {
+        type: "calendar",
+      },
     };
 
     // fetching device keys
@@ -82,9 +91,10 @@ class NotificationsFunctions {
 
       fcmKeys = fcmKey;
     });
-    console.log(`Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
+    console.log(
+      `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
+    );
     return admin.messaging().sendToDevice(fcmKeys, payload);
-
   }
 }
 
