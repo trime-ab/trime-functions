@@ -207,6 +207,7 @@ class StripeFunctions {
     stripeCustomerId: string;
     trimeAmount: number;
     stripeAccountId: string;
+    vatNumber: string;
   }) {
     try {
       const payment = await stripe.charges.create({
@@ -215,6 +216,7 @@ class StripeFunctions {
         customer: data.stripeCustomerId,
         application_fee_amount: data.trimeAmount,
         description: "A charge for booking.",
+        statement_descriptor: `Trainer VAT Number: ${data.vatNumber}`,
         transfer_data: {
           destination: data.stripeAccountId
         },
