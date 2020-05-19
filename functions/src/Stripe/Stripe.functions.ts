@@ -77,6 +77,7 @@ class StripeFunctions {
     firstName: string;
     lastName: string;
     trainerIp: any;
+    vat: string;
   }) {
     try {
       const account = await stripe.accounts.create({
@@ -115,7 +116,7 @@ class StripeFunctions {
         },
         settings: {
           payments: {
-            statement_descriptor: `${data.firstName} ${data.lastName}`
+            statement_descriptor: `${data.firstName} ${data.lastName} VAT number is ${data.vat}`
           },
           payouts: {
             debit_negative_balances: true
