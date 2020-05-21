@@ -84,6 +84,7 @@ class StripeFunctions {
         type: "custom",
         country: "SE",
         email: data.email,
+
         business_profile: {
           mcc: "8999",
           product_description:
@@ -111,12 +112,12 @@ class StripeFunctions {
           },
           first_name: data.firstName,
           last_name: data.lastName,
-          // phone: data.phone,
+          phone: data.phone,
           email: data.email
         },
         settings: {
           payments: {
-            statement_descriptor: `${data.firstName} ${data.lastName} VAT number is ${data.vat}`
+            statement_descriptor: `VAT number ${data.vat}`
           },
           payouts: {
             debit_negative_balances: true
@@ -129,8 +130,9 @@ class StripeFunctions {
       });
 
       console.log("Account successfully created");
+      console.log(data.phone)
       console.log(account.id);
-
+      console.log(account.individual?.phone)
       return account.id;
     } catch (error) {
       console.warn("Unable to create account");
