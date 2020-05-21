@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 
 import Stripe from "stripe";
 
-const stripe = new Stripe(functions.config().stripe.testsecret, {
+const stripe = new Stripe(functions.config().stripe.livesecretkey, {
   apiVersion: "2019-12-03"
 });
 
