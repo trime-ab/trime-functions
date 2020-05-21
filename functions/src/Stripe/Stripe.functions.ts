@@ -117,7 +117,7 @@ class StripeFunctions {
         },
         settings: {
           payments: {
-            statement_descriptor:`VAT number ${data.vat}`
+            statement_descriptor:`VAT: ${data.vat}`
           },
           payouts: {
             debit_negative_balances: true
