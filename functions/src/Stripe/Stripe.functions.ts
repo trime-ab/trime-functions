@@ -73,7 +73,7 @@ class StripeFunctions {
     email: string;
     address: any;
     dob: any;
-    phone: string;
+    formattedPhoneNumber: string;
     firstName: string;
     lastName: string;
     trainerIp: any;
@@ -89,7 +89,7 @@ class StripeFunctions {
           mcc: "8999",
           product_description:
             "This is the Trime Trainer. Money is paid from a customer to this account",
-          support_phone: data.phone,
+          support_phone: data.formattedPhoneNumber,
           url: "www.trime.app"
         },
         business_type: "individual",
@@ -112,12 +112,12 @@ class StripeFunctions {
           },
           first_name: data.firstName,
           last_name: data.lastName,
-          phone: data.phone,
+          phone: data.formattedPhoneNumber,
           email: data.email
         },
         settings: {
           payments: {
-            statement_descriptor: `VAT number ${data.vat}`
+            statement_descriptor:`VAT number ${data.vat}`
           },
           payouts: {
             debit_negative_balances: true
@@ -130,7 +130,7 @@ class StripeFunctions {
       });
 
       console.log("Account successfully created");
-      console.log(data.phone)
+      console.log(data.formattedPhoneNumber)
       console.log(account.id);
       console.log(account.individual?.phone)
       return account.id;
@@ -219,7 +219,7 @@ class StripeFunctions {
         customer: data.stripeCustomerId,
         application_fee_amount: data.trimeAmount,
         description: "A charge for booking.",
-        statement_descriptor: `Trainer VAT Number: ${data.vatNumber}`,
+        statement_descriptor:`VAT No:${data.vatNumber}`,
         transfer_data: {
           destination: data.stripeAccountId
         },
