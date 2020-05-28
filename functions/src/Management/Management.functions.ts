@@ -1,15 +1,13 @@
 import admin = require("firebase-admin");
 
 class ManagementFunctions {
-async changeUID() {
+async changeUID(data: {email: string, uid: string }) {
 
-    const email = "trainer@trime.app";
+    const email = `${data.email}`;
 
     const newUserOverrides = {
-        uid: "ST22SPGTuwOMpMmtKguKJcnnTun1",
-        password: 'trainer',
+        uid: `${data.uid}`,
     };
-
 
 
     console.log("Starting update for user with email:", email);
