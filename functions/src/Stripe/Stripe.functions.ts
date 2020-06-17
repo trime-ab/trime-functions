@@ -3,7 +3,7 @@ import * as functions from "firebase-functions";
 import Stripe from "stripe";
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
-  apiVersion: "2019-12-03"
+  apiVersion: "2020-03-02"
 });
 
 class StripeFunctions {
@@ -213,17 +213,19 @@ class StripeFunctions {
     vatNumber: string;
   }) {
     try {
-      const payment = await stripe.charges.create({
+      const payment = await stripe.paymentIntents.create({
         amount: data.amount,
         currency: "sek",
         customer: data.stripeCustomerId,
-        application_fee_amount: data.trimeAmount,
+        // application_fee_amount: data.trimeAmount,
         description: "A charge for booking.",
         statement_descriptor:`VAT No:${data.vatNumber}`,
         transfer_data: {
           destination: data.stripeAccountId
         },
-        on_behalf_of: data.stripeAccountId
+        on_behalf_of: data.stripeAccountId,
+        confirm: true
+
       });
 
       console.log("Payment successfully made");

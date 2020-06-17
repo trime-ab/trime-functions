@@ -21,7 +21,7 @@
     "firebase-functions": "^3.3.0",
     "firebase-tools": "^7.13.0",
     "mailchimp-api-v3": "^1.13.1",
-    "stripe": "^8.17.0"
+    "stripe": "^8.63.0"
   },
   "devDependencies": {
     "firebase-functions-test": "^0.1.6",
