@@ -24,7 +24,7 @@ exports.stripe = {
   getAccount: functions.https.onCall(stripeFunctions.getAccount),
   deleteBankAccount: functions.https.onCall(stripeFunctions.deleteBankAccount),
   deleteAccount: functions.https.onCall(stripeFunctions.deleteAccount),
-  makePayment: functions.https.onCall(stripeFunctions.makePayment),
+  createPaymentIntent: functions.https.onCall(stripeFunctions.createPaymentIntent),
 };
 
 exports.notifications = {

@@ -205,7 +205,7 @@ class StripeFunctions {
     }
   }
 
-  async makePayment(data: {
+  async createPaymentIntent(data: {
     amount: number;
     stripeCustomerId: string;
     trimeAmount: number;
@@ -213,7 +213,7 @@ class StripeFunctions {
     vatNumber: string;
   }) {
     try {
-      const payment = await stripe.paymentIntents.create({
+      const paymentIntent = await stripe.paymentIntents.create({
         amount: data.amount,
         currency: "sek",
         customer: data.stripeCustomerId,
@@ -224,14 +224,12 @@ class StripeFunctions {
           destination: data.stripeAccountId
         },
         on_behalf_of: data.stripeAccountId,
-        confirm: true
-
       });
 
       console.log("Payment successfully made");
-      console.log(payment.id);
+      console.log(paymentIntent.id);
 
-      return payment.id;
+      return paymentIntent;
     } catch (error) {
       console.warn("Unable to make payment", error);
       throw error;
