@@ -186,8 +186,6 @@ class StripeFunctions {
 
   async deleteBankAccount(data: { stripeAccountId: string; id: string }) {
     try {
-      console.log("bank account id is ", data.id);
-      console.log("stripe account number is", data.stripeAccountId);
       await stripe.accounts.deleteExternalAccount(
         data.stripeAccountId,
         data.id
@@ -202,6 +200,22 @@ class StripeFunctions {
       await stripe.accounts.del(data.stripeAccountId);
     } catch (error) {
       console.warn("Unable to delete account", error);
+    }
+  }
+
+  async updatePaymentDescriptor(data: { stripeAccountId: string, vat: string}) {
+    try {
+      await stripe.accounts.update(
+          data.stripeAccountId,
+          {settings: {
+            payments: {
+              statement_descriptor:`VAT: ${data.vat}`
+            }
+          }
+          }
+      )
+    } catch(error) {
+      console.warn('unable to update account', error)
     }
   }
 
