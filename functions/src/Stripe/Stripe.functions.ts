@@ -130,9 +130,6 @@ class StripeFunctions {
       });
 
       console.log("Account successfully created");
-      console.log(data.formattedPhoneNumber)
-      console.log(account.id);
-      console.log(account.individual?.phone)
       return account.id;
     } catch (error) {
       console.warn("Unable to create account");
@@ -163,7 +160,7 @@ class StripeFunctions {
     try {
       await stripe.accounts.createExternalAccount(data.stripeAccountId, {
         // eslint-disable-next-line @typescript-eslint/camelcase
-        external_account: data.bankAccountTokenId
+        external_account: data.bankAccountTokenId,
       });
       console.log("Bank Account added successfully");
     } catch (error) {
@@ -174,9 +171,7 @@ class StripeFunctions {
 
   async getAccount(stripeAccountId: string) {
     try {
-      console.log(stripeAccountId);
       const account = await stripe.accounts.retrieve(stripeAccountId);
-      console.log(account);
       return account;
     } catch (error) {
       console.warn("Unable to get account", stripeAccountId);
@@ -203,17 +198,17 @@ class StripeFunctions {
     }
   }
 
-  async updatePaymentDescriptor(data: { stripeAccountId: string, vat: string}) {
+  async updateVat(data: { stripeAccountId: string, vat: string}) {
     try {
-      await stripe.accounts.update(
-          data.stripeAccountId,
-          {settings: {
-            payments: {
-              statement_descriptor:`VAT: ${data.vat}`
-            }
-          }
-          }
-      )
+      console.log(data.stripeAccountId)
+      console.log(data.vat)
+      await stripe.accounts.update(data.stripeAccountId, {
+        settings: {
+          payments: {
+            statement_descriptor:`VAT: ${data.vat}`
+          },
+        },
+      })
     } catch(error) {
       console.warn('unable to update account', error)
     }
