@@ -214,6 +214,23 @@ class StripeFunctions {
     }
   }
 
+  async createRefund(data: {
+    paymentId: string;
+    amount: number;
+  }) {
+    try {
+      await stripe.refunds.create({
+            payment_intent: data.paymentId,
+            amount: data.amount,
+            reason: "requested_by_customer",
+          },
+      );
+      console.log('refund was made successfully')
+    } catch(error) {
+      console.warn('unable to refund money', error)
+    }
+  }
+
   async createPaymentIntent(data: {
     amount: number;
     stripeCustomerId: string;
