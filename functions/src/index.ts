@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 
 import mailChimpFunctions from "./mailChimp/mailChimp.functions";
 import { stripeFunctions } from "./Stripe/Stripe.functions";
-import { notificationsFunctions } from "./Notifications/Notifications.functions";
+ // import { notificationsFunctions } from "./Notifications/Notifications.functions";
 import {managementFunctions} from "./Management/Management.functions";
 
 const admin = require("firebase-admin");
@@ -30,8 +30,8 @@ exports.stripe = {
 };
 
 exports.notifications = {
-  onBookedDeal: functions.firestore.document("sessions/{sessions}").onCreate(notificationsFunctions.onBookedDeal),
-  onBookedDealTest: functions.https.onCall(notificationsFunctions.bookedDealTest),
+  // onBookedDeal: functions.firestore.document("sessions/{sessions}").onCreate(notificationsFunctions.onBookedDeal),
+  // onBookedDealTest: functions.https.onCall(notificationsFunctions.bookedDealTest),
 };
 
 exports.management = {
