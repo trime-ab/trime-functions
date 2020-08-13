@@ -1,100 +1,100 @@
-import admin = require("firebase-admin");
+import * as admin from "firebase-admin";
+import {notificationService} from "./Notification.service";
+import {Trainer} from "../domain/Trainer";
+import {Trainee} from "../domain/Trainee";
+import {EventContext} from "firebase-functions";
+import {Session} from "../domain/Session";
+import {TypedMessagingPayload} from "../domain/TypedMessagingPayload";
+import {NotificationDataNewBooking} from "../domain/NotificationDataNewBooking";
+import {NotificationDataSessionReminder} from "../domain/NotificationDataSessionReminder";
+import {NotificationLog} from "../domain/NotificationLog";
 
 class NotificationsFunctions {
-  async onBookedDeal(snap: any) {
-    // getting session
-    const sessionData = snap.data();
-    const traineeId = sessionData.traineeId;
-    const trainerId = sessionData.trainerId;
-    // const startTime = sessionData.start;
-
+  async bookingReminder(context: EventContext) {
     const db = admin.firestore();
 
-    // getting the trainee
-    const traineeRef = db.collection("trainees").doc(traineeId);
-    const traineeSnapshot = await traineeRef.get();
-    const trainee = traineeSnapshot.data();
+    const sessions = await notificationService.getSessionsForReminder(db)
 
-    // getting the trainer
-    const trainerRef = db.collection("trainers").doc(trainerId);
-    const trainerSnapshot = await trainerRef.get();
-    const trainer = trainerSnapshot.data();
+    const traineeIds = sessions.map(s => s.traineeId)
+    const trainerIds = sessions.map(s => s.traineeId)
+    const trainees: Trainee[] = await Promise.all(traineeIds.map(async (id) => notificationService.getTrainee(db, id)));
+    const trainers: Trainer[] = await Promise.all(trainerIds.map(async (id) => notificationService.getTrainer(db, id)));
 
-    // Notification Content`
+    const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
-    const payload = {
-      notification: {
-        title: "New session booked!",
-        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`,
-      },
-      data: {
-        userId: trainerId
-      },
-    };
+    for (const session of sessions) {
+      const trainer = trainers.find(trainer => trainer.id === session.trainerId)
+      const trainee = trainees.find(trainee => trainee.id === session.traineeId)
 
-    // fetching device keys and sending notification
-    const devicesRef = db
-      .collection("devices")
-      .where("userId", "==", trainer?.userId);
-    const devices = await devicesRef.get();
-
-    let fcmKeys: string[] = [];
-
-    devices.forEach((result) => {
-      const fcmKey = result.data().fcmKeys;
-
-      fcmKeys = fcmKey;
-    });
-    console.log(
-      `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
-    );
-    console.log('fcm keys',fcmKeys)
-    console.log('payload', payload)
-    return admin.messaging().sendToDevice(fcmKeys, payload);
+      if (this.sessionReminderHasNotBeenSent(logs, session, trainee.id)) {
+        await this.sendTraineeSessionReminder(session, trainer, trainee);
+      }
+      if (this.sessionReminderHasNotBeenSent(logs, session, trainer.id)) {
+        await this.sendTrainerSessionReminder(session, trainer, trainee);
+      }
+    }
   }
 
-  async bookedDealTest(data: { traineeId: string; trainerId: string }) {
-    const db = admin.firestore();
-
-    // getting the trainee
-    const traineeRef = db.collection("trainees").doc(data.traineeId);
-    const traineeSnapshot = await traineeRef.get();
-    const trainee = traineeSnapshot.data();
-
-    // getting the trainer
-    const trainerRef = db.collection("trainers").doc(data.trainerId);
-    const trainerSnapshot = await trainerRef.get();
-    const trainer = trainerSnapshot.data();
-
-    // notification details
-
-    const payload = {
+  private async sendTraineeSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
+    const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
       notification: {
-        title: "New session booked!",
-        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session`,
+        title: 'Reminder: upcoming session',
+        body: `Your ${session.name} session with ${trainer.firstName} ${trainer.lastName} is due to start within an hour`
       },
       data: {
-        type: "calendar",
+        userId: trainee.userId,
+      }
+    };
+    await notificationService.send(trainer.userId, trainee.userId, session.id, payload)
+    console.log(
+      `Session reminder notification has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`
+    );
+  }
+
+  private async sendTrainerSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
+    const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
+      notification: {
+        title: 'Reminder: upcoming session',
+        body: `Your ${session.name} session with ${trainee.firstName} ${trainee.lastName} is due to start within an hour`
       },
+      data: {
+        userId: trainer.userId,
+      }
     };
 
-    // fetching device keys
-    const devicesRef = db
-      .collection("devices")
-      .where("userId", "==", trainer?.userId);
-    const devices = await devicesRef.get();
+    await notificationService.send(trainee.userId, trainer.userId, session.id, payload)
+    console.log(
+      `Session reminder notification has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`
+    );
+  }
 
-    let fcmKeys: string[] = [];
+  private sessionReminderHasNotBeenSent(logs: NotificationLog[], session: Session, recipientUserId: string) {
+    return !logs.some(log => log.subjectId === session.id && log.recipientUserId === recipientUserId);
+  }
 
-    devices.forEach((result) => {
-      const fcmKey = result.data().fcmKeys;
+  async onBookedDeal(snap: any) {
+    const sessionData = snap.data();
 
-      fcmKeys = fcmKey;
-    });
+    const db = admin.firestore();
+
+    const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
+    const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
+
+    const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
+      notification: {
+        title: "New session booked!",
+        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`
+      },
+      data: {
+        userId: trainer.userId,
+      }
+    };
+
+    await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+
     console.log(
       `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
     );
-    return admin.messaging().sendToDevice(fcmKeys, payload);
   }
 }
 

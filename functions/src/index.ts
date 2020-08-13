@@ -1,9 +1,10 @@
 import * as functions from "firebase-functions";
 
 import mailChimpFunctions from "./mailChimp/mailChimp.functions";
-import { stripeFunctions } from "./Stripe/Stripe.functions";
- // import { notificationsFunctions } from "./Notifications/Notifications.functions";
+import {stripeFunctions} from "./Stripe/Stripe.functions";
+// import { notificationsFunctions } from "./Notifications/Notifications.functions";
 import {managementFunctions} from "./Management/Management.functions";
+import {notificationsFunctions} from "./Notifications/Notifications.functions";
 
 const admin = require("firebase-admin");
 admin.initializeApp({});
@@ -30,9 +31,10 @@ exports.stripe = {
 };
 
 exports.notifications = {
-  // onBookedDeal: functions.firestore.document("sessions/{sessions}").onCreate(notificationsFunctions.onBookedDeal),
-  // onBookedDealTest: functions.https.onCall(notificationsFunctions.bookedDealTest),
+  onBookedDeal: functions.firestore.document("sessions/{sessions}").onCreate(notificationsFunctions.onBookedDeal),
 };
+
+exports.bookingReminderNotification = functions.pubsub.schedule('every 5 minutes').onRun(context => notificationsFunctions.bookingReminder(context))
 
 exports.management = {
   changeUID: functions.https.onCall(managementFunctions.changeUID)
