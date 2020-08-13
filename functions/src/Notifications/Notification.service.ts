@@ -6,7 +6,7 @@ import {TypedMessagingPayload} from "../domain/TypedMessagingPayload";
 import {Trainer} from "../domain/Trainer";
 import {Trainee} from "../domain/Trainee";
 import {Session} from "../domain/Session";
-import CollectionReference = admin.firestore.CollectionReference;
+import DataMessagePayload = admin.messaging.DataMessagePayload;
 
 class NotificationService {
   private readonly COLLECTION = 'notificationLogs';
@@ -26,10 +26,11 @@ class NotificationService {
     const doc = collectionRef.doc()
     await doc.set(notificationLog)
 
-    return await admin.firestore()
+    const snapshot =  await admin.firestore()
       .collection(this.COLLECTION)
       .doc(doc.id)
       .get()
+    return snapshot.data() as NotificationLog
   }
 
 
@@ -41,11 +42,11 @@ class NotificationService {
     return snapshot.docs.map(d => d.data()) as NotificationLog[];
   }
 
-  async send<T>(senderUserId: string, recipientUserId: string, subjectId: string, payload: TypedMessagingPayload<T>) {
+  async send<T extends DataMessagePayload>(senderUserId: string, recipientUserId: string, subjectId: string, payload: TypedMessagingPayload<T>) {
     const db = admin.firestore();
     const devices = await this.getDevices(db, recipientUserId);
     const fcmKeys = this.getFcmKeys(devices);
-    const notificationLog = await notificationService.addNotificationLog(devices, senderUserId, recipientUserId, subjectId)
+    const notificationLog = await this.addNotificationLog(devices, senderUserId, recipientUserId, subjectId)
     payload.data.notificationLogId = notificationLog.id
     await admin.messaging().sendToDevice(fcmKeys, payload);
   }

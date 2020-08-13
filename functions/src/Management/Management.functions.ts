@@ -1,4 +1,4 @@
-import admin = require("firebase-admin");
+import * as admin from "firebase-admin"
 
 class ManagementFunctions {
 async changeUID(data: {email: string, uid: string }) {

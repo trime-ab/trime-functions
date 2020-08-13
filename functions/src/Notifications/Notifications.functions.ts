@@ -10,7 +10,7 @@ import {NotificationDataSessionReminder} from "../domain/NotificationDataSession
 import {NotificationLog} from "../domain/NotificationLog";
 
 class NotificationsFunctions {
-  async bookingReminder(context: EventContext) {
+  async bookingReminder(_context: EventContext) {
     const db = admin.firestore();
 
     const sessions = await notificationService.getSessionsForReminder(db)
@@ -23,8 +23,8 @@ class NotificationsFunctions {
     const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
     for (const session of sessions) {
-      const trainer = trainers.find(trainer => trainer.id === session.trainerId)
-      const trainee = trainees.find(trainee => trainee.id === session.traineeId)
+      const trainer = trainers.find(t => t.id === session.trainerId)
+      const trainee = trainees.find(t => t.id === session.traineeId)
 
       if (this.sessionReminderHasNotBeenSent(logs, session, trainee.id)) {
         await this.sendTraineeSessionReminder(session, trainer, trainee);
