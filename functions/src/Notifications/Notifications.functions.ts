@@ -8,6 +8,7 @@ import {TypedMessagingPayload} from "../domain/TypedMessagingPayload";
 import {NotificationDataNewBooking} from "../domain/NotificationDataNewBooking";
 import {NotificationDataSessionReminder} from "../domain/NotificationDataSessionReminder";
 import {NotificationLog} from "../domain/NotificationLog";
+import {NotificationDataCancelledBooking} from "../domain/NotificationDataCancelledBooking";
 
 class NotificationsFunctions {
   async bookingReminder(_context: EventContext) {
@@ -95,6 +96,45 @@ class NotificationsFunctions {
     console.log(
       `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
     );
+  }
+
+  async onCancelledDeal(snap: any) {
+    const sessionData = snap.data();
+
+    const db = admin.firestore();
+
+    const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
+    const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
+
+    if (sessionData.cancelledBy === 'trainee') {
+      const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+        notification: {
+          title: "Your booking was cancelled!",
+          body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`
+        },
+        data: {
+          userId: trainer.userId
+        }
+      }
+      await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+      console.log(
+          `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
+    }
+    if (sessionData.cancelledBy === 'trainer') {
+      const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+        notification: {
+          title: "Your booking was cancelled!",
+          body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`
+        },
+        data: {
+          userId: trainee.userId
+        }
+      }
+      await notificationService.send(trainer.userId, trainee.userId, trainee.userId, payload)
+      console.log(
+          `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
+    }
+
   }
 }
 

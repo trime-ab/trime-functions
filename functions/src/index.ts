@@ -32,6 +32,7 @@ exports.stripe = {
 
 exports.notifications = {
   onBookedDeal: functions.firestore.document("sessions/{sessions}").onCreate(notificationsFunctions.onBookedDeal),
+  onCancelledDeal: functions.firestore.document("sessions/{sessions}").onUpdate(notificationsFunctions.onCancelledDeal),
 };
 
 exports.bookingReminderNotification = functions.pubsub.schedule('every 5 minutes').onRun(context => notificationsFunctions.bookingReminder(context))
