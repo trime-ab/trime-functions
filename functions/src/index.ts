@@ -12,6 +12,13 @@ exports.mailchimp = {
   add: functions.https.onRequest(mailChimpFunctions.add),
 };
 
+exports.newNotifications = {
+  onBookedDeal: functions.firestore.document('sessions/{sessions}').onCreate(notificationsFunctions.onBookedDeal),
+  onCancelledDeal: functions.firestore.document("sessions/{sessions}").onUpdate(notificationsFunctions.onCancelledDeal),
+};
+
+exports.newBookingReminderNotification = functions.pubsub.schedule('every 5 minutes').onRun(context => notificationsFunctions.bookingReminder(context));
+
 exports.stripe = {
   createCustomer: functions.https.onCall(stripeFunctions.createCustomer),
   addCardToCustomer: functions.https.onCall(stripeFunctions.addCardToCustomer),
@@ -28,13 +35,6 @@ exports.stripe = {
   createRefund: functions.https.onCall(stripeFunctions.createRefund),
   updateVat: functions.https.onCall(stripeFunctions.updateVat),
 };
-
-exports.notifications = {
-  onBookedDeal: functions.firestore.document("sessions/{sessions}").onCreate(notificationsFunctions.onBookedDeal),
-  onCancelledDeal: functions.firestore.document("sessions/{sessions}").onUpdate(notificationsFunctions.onCancelledDeal),
-};
-
-exports.bookingReminderNotification = functions.pubsub.schedule('every 5 minutes').onRun(context => notificationsFunctions.bookingReminder(context))
 
 exports.management = {
   changeUID: functions.https.onCall(managementFunctions.changeUID)
