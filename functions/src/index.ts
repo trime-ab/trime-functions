@@ -2,9 +2,8 @@ import * as functions from "firebase-functions";
 
 import mailChimpFunctions from "./mailChimp/mailChimp.functions";
 import {stripeFunctions} from "./Stripe/Stripe.functions";
-// import { notificationsFunctions } from "./Notifications/Notifications.functions";
-import {managementFunctions} from "./Management/Management.functions";
 import {notificationsFunctions} from "./Notifications/Notifications.functions";
+import {managementFunctions} from "./Management/Management.functions";
 
 const admin = require("firebase-admin");
 admin.initializeApp({});

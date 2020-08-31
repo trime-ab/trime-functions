@@ -11,26 +11,25 @@ import DataMessagePayload = admin.messaging.DataMessagePayload;
 class NotificationService {
   private readonly COLLECTION = 'notificationLogs';
 
-  async addNotificationLog(devices: Device[], senderUserId: string, recipientUserId: string, subjectId: string): Promise<NotificationLog> {
+  async addNotificationLog(devices: Device[], senderUserId: string, recipientUserId: string, subjectId: string): Promise<string> {
     const db = admin.firestore();
 
-    const notificationLog = new NotificationLog()
-    notificationLog.date = new Date()
-    notificationLog.deviceIds = devices.map(device => device.id)
-    notificationLog.recipientUserId = recipientUserId
-    notificationLog.senderUserId = senderUserId
-    notificationLog.type = NotificationType.NEW_BOOKING
-    notificationLog.subjectId = subjectId
+    const notificationLog: NotificationLog = {
+      date: new Date(),
+      deviceIds: devices.map(device => device.id),
+      recipientUserId: recipientUserId,
+      senderUserId: senderUserId,
+      type: NotificationType.NEW_BOOKING,
+      subjectId: subjectId,
+    }
+
 
     const collectionRef = db.collection(this.COLLECTION)
     const doc = collectionRef.doc()
     await doc.set(notificationLog)
+    return doc.id
 
-    const snapshot =  await admin.firestore()
-      .collection(this.COLLECTION)
-      .doc(doc.id)
-      .get()
-    return snapshot.data() as NotificationLog
+
   }
 
 
@@ -46,8 +45,7 @@ class NotificationService {
     const db = admin.firestore();
     const devices = await this.getDevices(db, recipientUserId);
     const fcmKeys = this.getFcmKeys(devices);
-    const notificationLog = await this.addNotificationLog(devices, senderUserId, recipientUserId, subjectId)
-    payload.data.notificationLogId = notificationLog.id
+    payload.data.notificationLogId = await this.addNotificationLog(devices, senderUserId, recipientUserId, subjectId)
     await admin.messaging().sendToDevice(fcmKeys, payload);
   }
 
