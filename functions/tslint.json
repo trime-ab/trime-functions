@@ -15,6 +15,9 @@
     // Do not allow parameters to be reassigned. To avoid bugs, developers should instead assign new values to new vars.
     "no-parameter-reassignment": true,
 
+    // Do not allow variables to be used before they are declared.
+    "no-use-before-declare": true,
+
     // Force the use of ES6-style imports instead of /// <reference path=> imports.
     "no-reference": true,
 
@@ -64,9 +67,6 @@
 
     // Disallow control flow statements, such as return, continue, break, and throw in finally blocks.
     "no-unsafe-finally": true,
-
-    // Do not allow variables to be used before they are declared.
-    "no-use-before-declare": true,
 
     // Expressions must always return a value. Avoids common errors like const myValue = functionReturningVoid();
     "no-void-expression": [true, "ignore-arrow-function-shorthand"],

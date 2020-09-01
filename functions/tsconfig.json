@@ -2,13 +2,12 @@
   "compilerOptions": {
     "rootDir": "src",
     "lib": ["es6"],
-    "outDir": "lib",
-    "noUnusedLocals": false,
     "noUnusedParameters": true,
-    "target": "esnext",
     "jsx": "react-native",
     "experimentalDecorators": true,
-    "strict": true,
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
     "strictNullChecks": false,
     "typeRoots": ["node_modules/@types"],
     "moduleResolution": "node",
@@ -16,12 +15,17 @@
     "noEmit": true,
     "baseUrl": ".",
     "skipLibCheck": true,
-    "allowJs": false,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
-    "noImplicitReturns": false,
     "noImplicitThis": true,
-    "sourceMap": true
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": false,
+    "target": "es2017"
   },
-  "include": ["src"]
+  "compileOnSave": true,
+  "include": [
+    "src"
+  ]
 }

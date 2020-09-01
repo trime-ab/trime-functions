@@ -1,9 +1,8 @@
 import * as functions from "firebase-functions";
 
 import Stripe from "stripe";
-
 const stripe = new Stripe(functions.config().stripe.testsecret, {
-  apiVersion: "2020-03-02"
+  apiVersion: "2020-08-27"
 });
 
 class StripeFunctions {
@@ -81,10 +80,6 @@ class StripeFunctions {
   }) {
     try {
       const account = await stripe.accounts.create({
-        type: "custom",
-        country: "SE",
-        email: data.email,
-
         business_profile: {
           mcc: "8999",
           product_description:
@@ -93,9 +88,17 @@ class StripeFunctions {
           url: "www.trime.app"
         },
         business_type: "individual",
+        capabilities: {
+          card_payments: {
+            requested: true,
+          },
+          transfers: {
+            requested: true,
+          },
+        },
+        country: "SE",
         default_currency: "sek",
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        requested_capabilities: ["card_payments", "transfers"],
+        email: data.email,
         individual: {
           address: {
             line1: data.address.line1,
@@ -126,7 +129,8 @@ class StripeFunctions {
         tos_acceptance: {
           date: Math.floor(Date.now() / 1000),
           ip: data.trainerIp
-        }
+        },
+        type: "custom",
       });
 
       console.log("Account successfully created");
