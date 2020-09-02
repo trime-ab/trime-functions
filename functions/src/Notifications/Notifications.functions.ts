@@ -21,7 +21,7 @@ class NotificationsFunctions {
     const trainerIds = sessions.map(s => s.traineeId)
     const trainees: Trainee[] = await Promise.all(traineeIds.map(async (id) => notificationService.getTrainee(db, id)));
     const trainers: Trainer[] = await Promise.all(trainerIds.map(async (id) => notificationService.getTrainer(db, id)));
-
+    // the issue is inside Logs
     const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
     for (const session of sessions) {
@@ -75,6 +75,7 @@ class NotificationsFunctions {
   }
 
   async onBookedDeal(snap: any) {
+    const sessionId = snap.id
     const sessionData = snap.data();
 
     const db = admin.firestore();
@@ -89,7 +90,9 @@ class NotificationsFunctions {
       },
       data: {
         userId: trainer.userId,
-        type: NotificationType.NEW_BOOKING
+        type: NotificationType.NEW_BOOKING,
+        trainerCalender: trainer.calenderSettings.calenderId,
+        sessionId: sessionId
       }
     };
 

@@ -12,8 +12,6 @@ exports.mailchimp = {
     add: functions.https.onRequest(mailChimpFunctions.add),
 };
 
-
-
 exports.notifications = {
     onBookedDeal: functions.firestore.document('sessions/{sessions}').onCreate(notificationsFunctions.onBookedDeal),
     onCancelledDeal: functions.firestore.document('sessions/{sessions}').onUpdate(notificationsFunctions.onCancelledDeal),
