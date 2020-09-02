@@ -12,7 +12,6 @@
     "typeRoots": ["node_modules/@types"],
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "noEmit": true,
     "baseUrl": ".",
     "skipLibCheck": true,
     "allowJs": true,

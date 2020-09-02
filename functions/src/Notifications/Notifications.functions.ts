@@ -9,6 +9,7 @@ import {NotificationDataNewBooking} from "../domain/NotificationDataNewBooking";
 import {NotificationDataSessionReminder} from "../domain/NotificationDataSessionReminder";
 import {NotificationLog} from "../domain/NotificationLog";
 import {NotificationDataCancelledBooking} from "../domain/NotificationDataCancelledBooking";
+import {NotificationType} from "../domain/NotificationType";
 
 class NotificationsFunctions {
   async bookingReminder(_context: EventContext) {
@@ -88,6 +89,7 @@ class NotificationsFunctions {
       },
       data: {
         userId: trainer.userId,
+        type: NotificationType.NEW_BOOKING
       }
     };
 
@@ -98,43 +100,48 @@ class NotificationsFunctions {
     );
   }
 
-  async onCancelledDeal(snap: any) {
-    const sessionData = snap.data();
+  async onCancelledDeal(change: any) {
+    const sessionData = change.after.data();
+    if (sessionData.cancelled === true){
+      const db = admin.firestore();
 
-    const db = admin.firestore();
+      const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
+      const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
 
-    const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
-    const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
-
-    if (sessionData.cancelledBy === 'trainee') {
-      const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
-        notification: {
-          title: "Your booking was cancelled!",
-          body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`
-        },
-        data: {
-          userId: trainer.userId
+      if (sessionData.cancelledByUserType === 'TRAINEE') {
+        const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+          notification: {
+            title: "Your booking was cancelled!",
+            body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`
+          },
+          data: {
+            userId: trainer.userId,
+            type: NotificationType.CANCELLED_BOOKING
+          }
         }
+        console.log(payload)
+        await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+        console.log(
+            `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
       }
-      await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
-      console.log(
-          `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
-    }
-    if (sessionData.cancelledBy === 'trainer') {
-      const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
-        notification: {
-          title: "Your booking was cancelled!",
-          body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`
-        },
-        data: {
-          userId: trainee.userId
+      if (sessionData.cancelledByUserType === 'TRAINER') {
+        const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+          notification: {
+            title: "Your booking was cancelled!",
+            body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`
+          },
+          data: {
+            userId: trainee.userId,
+            type: NotificationType.CANCELLED_BOOKING
+          }
         }
+        console.log(payload)
+        await notificationService.send(trainer.userId, trainee.userId, trainer.userId, payload)
+        console.log(
+            `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
       }
-      await notificationService.send(trainer.userId, trainee.userId, trainee.userId, payload)
-      console.log(
-          `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
-    }
 
+    }
   }
 }
 
