@@ -12,21 +12,21 @@ class NotificationService {
     private readonly COLLECTION = 'notificationLogs';
 
     async addCancelledSessionNotificationLog(devices: Device[], senderUserId: string, recipientUserId: string, subjectId: string): Promise<string> {
-      const db = admin.firestore();
-      const notificationLog: NotificationLog = {
-        date: new Date(),
-        deviceIds: devices.map(device => device.id),
-        recipientUserId: recipientUserId,
-        senderUserId: senderUserId,
-        type: NotificationType.CANCELLED_BOOKING,
-        subjectId: subjectId,
-      }
+        const db = admin.firestore();
+        const notificationLog: NotificationLog = {
+            date: new Date(),
+            deviceIds: devices.map(device => device.id),
+            recipientUserId: recipientUserId,
+            senderUserId: senderUserId,
+            type: NotificationType.CANCELLED_BOOKING,
+            subjectId: subjectId,
+        }
 
 
-      const collectionRef = db.collection(this.COLLECTION)
-      const doc = collectionRef.doc()
-      await doc.set(notificationLog)
-      return doc.id
+        const collectionRef = db.collection(this.COLLECTION)
+        const doc = collectionRef.doc()
+        await doc.set(notificationLog)
+        return doc.id
 
     }
 
@@ -50,7 +50,7 @@ class NotificationService {
     async getNotificationLogs(subjectIds: string[]): Promise<NotificationLog[]> {
         const db = admin.firestore();
 
-        const collectionRef = db.collection(this.COLLECTION).where('subjectId', '==', subjectIds)
+        const collectionRef = db.collection(this.COLLECTION).where('subjectId', 'in', subjectIds)
         const snapshot = await collectionRef.get()
         return snapshot.docs.map(d => d.data()) as NotificationLog[];
     }
@@ -97,14 +97,23 @@ class NotificationService {
         return traineeSnapshot.data() as Trainee;
     }
 
+    // @ts-ignore
     async getSessionsForReminder(db: admin.firestore.Firestore): Promise<Session[]> {
         const now = new Date()
         const limit = new Date()
         limit.setHours(limit.getHours() + 1)
 
-        const sessionsRef = db.collection("sessions").where('start', '>=', now).where('start', '<=', limit);
-        const sessionsSnapshots = await sessionsRef.get();
-        return sessionsSnapshots.docs.map(d => d.data()) as Session[];
+        const sessionRef = db.collection("sessions")
+        const snapshot = await sessionRef.where('start', '>=', now).where('start', '<=', limit).get()
+        if (snapshot.empty) {
+            console.log('no matching documents')
+            // @ts-ignore
+            return;
+        }
+        snapshot.forEach(doc => {
+            console.log('I am the sessions', doc.data())
+            return doc.data() as Session[]
+        })
     }
 }
 

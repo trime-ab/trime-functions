@@ -21,18 +21,24 @@ class NotificationsFunctions {
     const trainerIds = sessions.map(s => s.traineeId)
     const trainees: Trainee[] = await Promise.all(traineeIds.map(async (id) => notificationService.getTrainee(db, id)));
     const trainers: Trainer[] = await Promise.all(trainerIds.map(async (id) => notificationService.getTrainer(db, id)));
-
+    console.log(' I am the hammer')
+    console.log(sessions.map(s => s.id))
     const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
-
+    console.log(' I am the tip of his spear')
     for (const session of sessions) {
+      console.log('The mail about his fist')
       const trainer = trainers.find(t => t.id === session.trainerId)
       const trainee = trainees.find(t => t.id === session.traineeId)
-
+     console.log('I am the bane of his foes')
       if (this.sessionReminderHasNotBeenSent(logs, session, trainee.id)) {
+        console.log('and the woes of the treacherous')
         await this.sendTraineeSessionReminder(session, trainer, trainee);
+        console.log('I am the end')
       }
       if (this.sessionReminderHasNotBeenSent(logs, session, trainer.id)) {
+        console.log('and the woes of the treacherous')
         await this.sendTrainerSessionReminder(session, trainer, trainee);
+        console.log('I am the end')
       }
     }
   }
@@ -83,21 +89,39 @@ class NotificationsFunctions {
     const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
     const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
 
-    const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
-      notification: {
-        title: "New session booked!",
-        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`
-      },
-      data: {
-        userId: trainer.userId,
-        type: NotificationType.NEW_BOOKING,
-        trainerCalender: trainer.calenderSettings.calenderId,
-        sessionId: sessionId
-      }
-    };
+    if (trainer.calenderSettings.calenderId){
+      const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
+        notification: {
+          title: "New session booked!",
+          body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`
+        },
+        data: {
+          userId: trainer.userId,
+          type: NotificationType.NEW_BOOKING,
+          trainerCalender: trainer.calenderSettings?.calenderId,
+          sessionId: sessionId
 
-    await notificationService.send(trainee.userId, trainer.userId, sessionId, payload)
+        }
+      };
 
+      await notificationService.send(trainee.userId, trainer.userId, sessionId, payload)
+    }
+    if (!trainer.calenderSettings.calenderId){
+      const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
+        notification: {
+          title: "New session booked!",
+          body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`
+        },
+        data: {
+          userId: trainer.userId,
+          type: NotificationType.NEW_BOOKING,
+          sessionId: sessionId
+
+        }
+      };
+
+      await notificationService.send(trainee.userId, trainer.userId, sessionId, payload)
+    }
     console.log(
       `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
     );
