@@ -21,7 +21,7 @@ class NotificationsFunctions {
     const trainerIds = sessions.map(s => s.traineeId)
     const trainees: Trainee[] = await Promise.all(traineeIds.map(async (id) => notificationService.getTrainee(db, id)));
     const trainers: Trainer[] = await Promise.all(trainerIds.map(async (id) => notificationService.getTrainer(db, id)));
-    // the issue is inside Logs
+
     const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
     for (const session of sessions) {
@@ -96,7 +96,7 @@ class NotificationsFunctions {
       }
     };
 
-    await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+    await notificationService.send(trainee.userId, trainer.userId, sessionId, payload)
 
     console.log(
       `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
@@ -104,6 +104,7 @@ class NotificationsFunctions {
   }
 
   async onCancelledDeal(change: any) {
+    const sessionId = change.after.id
     const sessionData = change.after.data();
     if (sessionData.cancelled === true){
       const db = admin.firestore();
@@ -123,7 +124,7 @@ class NotificationsFunctions {
           }
         }
         console.log(payload)
-        await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+        await notificationService.send(trainee.userId, trainer.userId, sessionId, payload)
         console.log(
             `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
       }
@@ -139,7 +140,7 @@ class NotificationsFunctions {
           }
         }
         console.log(payload)
-        await notificationService.send(trainer.userId, trainee.userId, trainer.userId, payload)
+        await notificationService.send(trainer.userId, trainee.userId, sessionId, payload)
         console.log(
             `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
       }
