@@ -50,7 +50,7 @@ class NotificationService {
     async getNotificationLogs(subjectIds: string[]): Promise<NotificationLog[]> {
         const db = admin.firestore();
 
-        const collectionRef = db.collection(this.COLLECTION).where('subjectId', '==', subjectIds)
+        const collectionRef = db.collection(this.COLLECTION).where('subjectId', 'in', subjectIds)
         const snapshot = await collectionRef.get()
         return snapshot.docs.map(d => d.data()) as NotificationLog[];
     }
