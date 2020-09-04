@@ -90,6 +90,7 @@ class NotificationService {
         const trainerSnapshot = await trainerRef.get();
         return trainerSnapshot.data() as Trainer;
     }
+    c
 
     async getTrainee(db: admin.firestore.Firestore, traineeId: string): Promise<Trainee> {
         const traineeRef = db.collection("trainees").doc(traineeId);
@@ -104,7 +105,12 @@ class NotificationService {
 
         const sessionsRef = db.collection("sessions").where('start', '>=', now).where('start', '<=', limit);
         const sessionsSnapshots = await sessionsRef.get();
-        return sessionsSnapshots.docs.map(d => d.data()) as Session[];
+        if (sessionsSnapshots.empty) {
+            console.log('There are no sessions')
+            // @ts-ignore
+            return;
+        }
+        return sessionsSnapshots.docs.map(d => ({id: d.id, ...d.data()})) as Session[];
     }
 }
 

@@ -12,140 +12,153 @@ import {NotificationDataCancelledBooking} from "../domain/NotificationDataCancel
 import {NotificationType} from "../domain/NotificationType";
 
 class NotificationsFunctions {
-  async bookingReminder(_context: EventContext) {
-    const db = admin.firestore();
+    async bookingReminder(_context: EventContext) {
+        const db = admin.firestore();
 
-    const sessions = await notificationService.getSessionsForReminder(db)
+        const sessions = await notificationService.getSessionsForReminder(db)
 
-    const traineeIds = sessions.map(s => s.traineeId)
-    const trainerIds = sessions.map(s => s.traineeId)
-    const trainees: Trainee[] = await Promise.all(traineeIds.map(async (id) => notificationService.getTrainee(db, id)));
-    const trainers: Trainer[] = await Promise.all(trainerIds.map(async (id) => notificationService.getTrainer(db, id)));
-    // the issue is inside Logs
-    const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
+        if (sessions) {
+            const traineeIds = sessions.map(s => s.traineeId)
+            const trainerIds = sessions.map(s => s.trainerId)
 
-    for (const session of sessions) {
-      const trainer = trainers.find(t => t.id === session.trainerId)
-      const trainee = trainees.find(t => t.id === session.traineeId)
+            const trainees: Trainee[] = await Promise.all(traineeIds.map(async (id) => notificationService.getTrainee(db, id)));
 
-      if (this.sessionReminderHasNotBeenSent(logs, session, trainee.id)) {
-        await this.sendTraineeSessionReminder(session, trainer, trainee);
-      }
-      if (this.sessionReminderHasNotBeenSent(logs, session, trainer.id)) {
-        await this.sendTrainerSessionReminder(session, trainer, trainee);
-      }
-    }
-  }
+            const trainers: Trainer[] = await Promise.all(trainerIds.map(async (id) => notificationService.getTrainer(db, id)));
 
-  private async sendTraineeSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
-    const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
-      notification: {
-        title: 'Reminder: upcoming session',
-        body: `Your ${session.name} session with ${trainer.firstName} ${trainer.lastName} is due to start within an hour`
-      },
-      data: {
-        userId: trainee.userId,
-      }
-    };
-    await notificationService.send(trainer.userId, trainee.userId, session.id, payload)
-    console.log(
-      `Session reminder notification has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`
-    );
-  }
+            const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
-  private async sendTrainerSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
-    const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
-      notification: {
-        title: 'Reminder: upcoming session',
-        body: `Your ${session.name} session with ${trainee.firstName} ${trainee.lastName} is due to start within an hour`
-      },
-      data: {
-        userId: trainer.userId,
-      }
-    };
+            for (const session of sessions) {
 
-    await notificationService.send(trainee.userId, trainer.userId, session.id, payload)
-    console.log(
-      `Session reminder notification has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`
-    );
-  }
+                const trainee = trainees.find(t => t.id === session.traineeId)
 
-  private sessionReminderHasNotBeenSent(logs: NotificationLog[], session: Session, recipientUserId: string) {
-    return !logs.some(log => log.subjectId === session.id && log.recipientUserId === recipientUserId);
-  }
+                const trainer = trainers.find(t => t.id === session.trainerId)
+                console.log('works up to here')
 
-  async onBookedDeal(snap: any) {
-    const sessionId = snap.id
-    const sessionData = snap.data();
-
-    const db = admin.firestore();
-
-    const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
-    const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
-
-    const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
-      notification: {
-        title: "New session booked!",
-        body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`
-      },
-      data: {
-        userId: trainer.userId,
-        type: NotificationType.NEW_BOOKING,
-        trainerCalender: trainer.calenderSettings.calenderId,
-        sessionId: sessionId
-      }
-    };
-
-    await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
-
-    console.log(
-      `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
-    );
-  }
-
-  async onCancelledDeal(change: any) {
-    const sessionData = change.after.data();
-    if (sessionData.cancelled === true){
-      const db = admin.firestore();
-
-      const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
-      const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
-
-      if (sessionData.cancelledByUserType === 'TRAINEE') {
-        const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
-          notification: {
-            title: "Your booking was cancelled!",
-            body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`
-          },
-          data: {
-            userId: trainer.userId,
-            type: NotificationType.CANCELLED_BOOKING
-          }
+                if (this.sessionReminderHasNotBeenSent(logs, session, trainee.id)) {
+                    console.log('I am the hammer')
+                    await this.sendTraineeSessionReminder(session, trainer, trainee);
+                    console.log('I am the tip of his spear')
+                }
+                console.log('The mail about his fist')
+                if (this.sessionReminderHasNotBeenSent(logs, session, trainer.id)) {
+                    console.log('I am the bane of his foes')
+                    await this.sendTrainerSessionReminder(session, trainer, trainee);
+                    console.log('And the woes of the treacherous')
+                }
+            }
         }
-        console.log(payload)
+    }
+
+    private async sendTraineeSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
+        const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
+            notification: {
+                title: 'Reminder: upcoming session',
+                body: `Your ${session?.name} session with ${trainer?.firstName} ${trainer?.lastName} is due to start within an hour`
+            },
+            data: {
+                userId: trainee?.userId,
+            }
+        };
+        await notificationService.send(trainer?.userId, trainee?.userId, session?.id, payload)
+        console.log(
+            `Session reminder notification has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`
+        );
+    }
+
+    private async sendTrainerSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
+        const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
+            notification: {
+                title: 'Reminder: upcoming session',
+                body: `Your ${session.name} session with ${trainee?.firstName} ${trainee?.lastName} is due to start within an hour`
+            },
+            data: {
+                userId: trainer?.userId,
+            }
+        };
+
+        await notificationService.send(trainee?.userId, trainer?.userId, session?.id, payload)
+        console.log(
+            `Session reminder notification has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`
+        );
+    }
+
+    private sessionReminderHasNotBeenSent(logs: NotificationLog[], session: Session, recipientUserId: string) {
+        console.log(session)
+        return !logs.some(log => log.subjectId === session.id && log.recipientUserId === recipientUserId);
+    }
+
+    async onBookedDeal(snap: any) {
+        const sessionId = snap.id
+        const sessionData = snap.data();
+
+        const db = admin.firestore();
+
+        const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
+        const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
+
+        const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
+            notification: {
+                title: "New session booked!",
+                body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`
+            },
+            data: {
+                userId: trainer.userId,
+                type: NotificationType.NEW_BOOKING,
+                trainerCalender: trainer.calenderSettings.calenderId,
+                sessionId: sessionId
+            }
+        };
+
         await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
-        console.log(
-            `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
-      }
-      if (sessionData.cancelledByUserType === 'TRAINER') {
-        const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
-          notification: {
-            title: "Your booking was cancelled!",
-            body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`
-          },
-          data: {
-            userId: trainee.userId,
-            type: NotificationType.CANCELLED_BOOKING
-          }
-        }
-        console.log(payload)
-        await notificationService.send(trainer.userId, trainee.userId, trainer.userId, payload)
-        console.log(
-            `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
-      }
 
+        console.log(
+            `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
+        );
     }
-  }
+
+    async onCancelledDeal(change: any) {
+        const sessionData = change.after.data();
+        if (sessionData.cancelled === true) {
+            const db = admin.firestore();
+
+            const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
+            const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
+
+            if (sessionData.cancelledByUserType === 'TRAINEE') {
+                const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+                    notification: {
+                        title: "Your booking was cancelled!",
+                        body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`
+                    },
+                    data: {
+                        userId: trainer.userId,
+                        type: NotificationType.CANCELLED_BOOKING
+                    }
+                }
+                console.log(payload)
+                await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+                console.log(
+                    `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
+            }
+            if (sessionData.cancelledByUserType === 'TRAINER') {
+                const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+                    notification: {
+                        title: "Your booking was cancelled!",
+                        body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`
+                    },
+                    data: {
+                        userId: trainee.userId,
+                        type: NotificationType.CANCELLED_BOOKING
+                    }
+                }
+                console.log(payload)
+                await notificationService.send(trainer.userId, trainee.userId, trainer.userId, payload)
+                console.log(
+                    `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
+            }
+
+        }
+    }
 }
 
 export const notificationsFunctions = new NotificationsFunctions();
