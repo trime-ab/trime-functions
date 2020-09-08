@@ -106,9 +106,7 @@ class NotificationService {
         const sessionsRef = db.collection("sessions").where('start', '>=', now).where('start', '<=', limit);
         const sessionsSnapshots = await sessionsRef.get();
         if (sessionsSnapshots.empty) {
-            console.log('There are no sessions')
-            // @ts-ignore
-            return;
+            return [];
         }
         return sessionsSnapshots.docs.map(d => ({id: d.id, ...d.data()})) as Session[];
     }

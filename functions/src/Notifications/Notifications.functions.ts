@@ -15,15 +15,17 @@ class NotificationsFunctions {
     async bookingReminder(_context: EventContext) {
         const db = admin.firestore();
 
-        const sessions = await notificationService.getSessionsForReminder(db)
+        const sessions = (await notificationService.getSessionsForReminder(db)).filter(s => s.traineeId && s.trainerId)
 
-        if (sessions) {
-            const traineeIds = sessions.map(s => s.traineeId)
-            const trainerIds = sessions.map(s => s.trainerId)
+        if (!!sessions.length) {
+            const traineeIds = new Set<string>()
+            sessions.forEach(s => traineeIds.add(s.traineeId))
+            const trainerIds = new Set<string>()
+            sessions.forEach(s => trainerIds.add(s.trainerId))
 
-            const trainees: Trainee[] = await Promise.all(traineeIds.map(async (id) => notificationService.getTrainee(db, id)));
+            const trainees: Trainee[] = await Promise.all(Array.from(traineeIds).map(async (id) => notificationService.getTrainee(db, id)));
 
-            const trainers: Trainer[] = await Promise.all(trainerIds.map(async (id) => notificationService.getTrainer(db, id)));
+            const trainers: Trainer[] = await Promise.all(Array.from(trainerIds).map(async (id) => notificationService.getTrainer(db, id)));
 
             const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
