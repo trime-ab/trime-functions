@@ -1,6 +1,10 @@
 export interface Trainee {
-  userId: string;
-  id: string
-  firstName: string
-  lastName: string
+    notificationSettings: {
+        events: boolean;
+        messages: boolean;
+    },
+    userId: string;
+    id: string
+    firstName: string
+    lastName: string
 }
