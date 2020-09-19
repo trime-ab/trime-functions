@@ -24,6 +24,66 @@ class StripeFunctions {
         }
     }
 
+    async updateDefaultPayment(data: { stripeCustomerId: string, paymentId: string }) {
+        return stripe.customers.update(
+            data.stripeCustomerId,
+            {invoice_settings: {default_payment_method: data.paymentId}}
+        )
+    }
+
+    async createCustomerSetupIntent(data: {
+        stripeCustomerId: string
+        paymentId: string
+    }) {
+
+        try {
+            console.log(data.paymentId)
+            await stripe.setupIntents.create({
+                payment_method_types: ['card'],
+                confirm: true,
+                customer: data.stripeCustomerId,
+                usage: "off_session",
+                payment_method: data.paymentId,
+
+            })
+
+        } catch (error) {
+            console.warn('Unable to attach card to customer', data.stripeCustomerId)
+            throw error;
+        }
+    }
+
+
+    async createCustomerCard(data: {
+        number: string
+        expMonth: number
+        expYear: number
+        cvc: string
+        nameOnCard: string
+    }) {
+        try {
+            const card = await stripe.paymentMethods.create({
+                type: 'card',
+                card: {
+                    number: data.number,
+                    exp_month: data.expMonth,
+                    exp_year: data.expYear,
+                    cvc: data.cvc,
+                },
+                billing_details: {
+                    name: data.nameOnCard,
+                },
+            })
+            console.log("card sent");
+            console.log(card.id);
+            return card.id
+        } catch (error) {
+            console.warn('Unable to attach card to customer')
+            throw error;
+        }
+    }
+
+
     async addCardToCustomer(data: {
         stripeCustomerId: string;
         cardTokenId: string;
@@ -40,6 +100,17 @@ class StripeFunctions {
         }
     }
 
+    async getPaymentMethod(data: { paymentMethod: string }) {
+        try {
+            console.log('getting payment method')
+            return stripe.paymentMethods.retrieve(data.paymentMethod)
+        } catch (error) {
+            console.warn("Unable to get payment method",);
+            throw error;
+        }
+    }
+
+
     async getCustomer(stripeCustomerId: string) {
         try {
             return stripe.customers.retrieve(stripeCustomerId);
@@ -50,23 +121,14 @@ class StripeFunctions {
         }
     }
 
-    async retrieveCard(data: { stripeCustomerId: string, cardId: string }) {
+    async deleteCard(data: { default_payment_method: string }) {
         try {
-            return stripe.customers.retrieveSource(data.stripeCustomerId, data.cardId)
-        } catch (error) {
-            console.warn('Unable to get customer card', data.stripeCustomerId);
-            throw error;
-        }
-    }
-
-    async deleteCard(data: { stripeCustomerId: string; default_source: string }) {
-        try {
-            await stripe.customers.deleteSource(
-                data.stripeCustomerId,
-                data.default_source
+            return stripe.paymentMethods.detach(
+                data.default_payment_method
             );
         } catch (error) {
-            console.warn("Unable to delete card from account", data.default_source);
+            console.warn("Unable to delete card from account", data.default_payment_method);
+            throw error;
         }
     }
 
@@ -151,18 +213,24 @@ class StripeFunctions {
         }
     }
 
-    async addCardToAccount(data: {
-        stripeAccountId: string;
-        cardTokenId: string;
+    async createBankAccountToken(data: {
+        country: string
+        currency: string
+        name: string
+        accountNumber: string
     }) {
         try {
-            console.log("adding card to account", data);
-            await stripe.accounts.createExternalAccount(data.stripeAccountId, {
-                external_account: data.cardTokenId
-            });
-            console.log("Customer Card added successfully");
+            const token = await stripe.tokens.create({
+                bank_account: {
+                    country: data.country,
+                    currency: data.currency,
+                    account_holder_name: data.name,
+                    account_number: data.accountNumber,
+                }
+            })
+            return token.id
         } catch (error) {
-            console.warn("Unable to add card to customer");
+            console.warn('Could not create bank account token')
             throw error;
         }
     }
