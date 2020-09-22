@@ -1,10 +1,10 @@
 import * as admin from "firebase-admin"
+import * as functions from "firebase-functions";
 
-import * as nodemailer from "nodemailer"
+import nodemailer from "nodemailer"
 
 class ManagementFunctions {
     async changeUID(data: { email: string, uid: string }) {
-
         const email = `${data.email}`;
 
         const newUserOverrides = {
@@ -33,19 +33,19 @@ class ManagementFunctions {
     async traineeWelcomeEmail(snap: any) {
         const traineeData = snap.data();
 
-        let transporter = nodemailer.createTransport({
+        const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'info@trime.app',
-                pass: 'beamM3Up5c0tty'
+                user: "info@trime.app",
+                pass: "resistanceIsFut1le",
             }
         })
-        try {
-            const mailOptions = {
-                from: 'Trime team <info@trime.app>',
-                to: traineeData.email,
-                subject: 'You’re in! Welcome to Trime!',
-                html: `<p style="font-size: 16px;">Hi There</p>
+
+        const mailOptions = {
+            from: 'info@trime.app',
+            to: traineeData.email,
+            subject: 'You’re in! Welcome to Trime!',
+            html: `<p style="font-size: 16px;">Hi There</p>
                 <br />
                 <p>We’re excited to welcome you to Trime!</p>
                 <br />
@@ -60,12 +60,17 @@ class ManagementFunctions {
                 <p>So go ahead, dive in, get cracking… And have fun!</p>
                 <br />
                 <p>The Trime Team</p>
-            ` // email content in HTML
-            };
-            return transporter.sendMail(mailOptions)
-        } catch (error) {
-            console.warn('was unable to send welcome email', error)
-        }
+            `
+        };
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                functions.logger.log(error)
+
+            } else {
+                functions.logger.log('Email Sent:' + info.response)
+            }
+        })
+
     }
 
 
