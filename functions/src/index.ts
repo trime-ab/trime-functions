@@ -43,4 +43,5 @@ exports.stripe = {
 exports.management = {
     changeUID: functions.https.onCall(managementFunctions.changeUID),
     traineeWelcomeEmail: functions.firestore.document('trainees/{trainees}').onCreate(managementFunctions.traineeWelcomeEmail),
+    trainerWelcomeEmail: functions.firestore.document('trainers/{trainers}').onCreate(managementFunctions.trainerWelcomeEmail),
 };
