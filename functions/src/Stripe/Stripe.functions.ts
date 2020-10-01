@@ -38,13 +38,17 @@ class StripeFunctions {
 
         try {
             console.log(data.paymentId)
-            await stripe.setupIntents.create({
+            return stripe.setupIntents.create({
                 payment_method_types: ['card'],
                 confirm: true,
                 customer: data.stripeCustomerId,
                 usage: "off_session",
                 payment_method: data.paymentId,
-
+                payment_method_options: {
+                  card: {
+                      request_three_d_secure: "automatic"
+                  },
+                },
             })
 
         } catch (error) {
