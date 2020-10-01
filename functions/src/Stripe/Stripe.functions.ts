@@ -320,7 +320,6 @@ class StripeFunctions {
         stripeAccountId: string;
         vatNumber: string;
         email: string;
-        object: any;
     }) {
         try {
             const paymentIntent = await stripe.paymentIntents.create({
@@ -330,7 +329,6 @@ class StripeFunctions {
                 // application_fee_amount: data.trimeAmount,
                 description: "A charge for booking.",
                 statement_descriptor: `VAT No:${data.vatNumber}`,
-                payment_method: data.object,
                 receipt_email: data.email,
                 transfer_data: {
                     destination: data.stripeAccountId
