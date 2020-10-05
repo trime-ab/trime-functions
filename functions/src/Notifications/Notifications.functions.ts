@@ -56,7 +56,8 @@ class NotificationsFunctions {
             const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
                 notification: {
                     title: 'Reminder: upcoming session',
-                    body: `Your ${session?.name} session with ${trainer?.firstName} ${trainer?.lastName} is due to start within an hour`
+                    body: `Your ${session?.name} session with ${trainer?.firstName} ${trainer?.lastName} is due to start within an hour`,
+                    badge: '1'
                 },
                 data: {
                     userId: trainee?.userId,
@@ -74,7 +75,8 @@ class NotificationsFunctions {
             const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
                 notification: {
                     title: 'Reminder: upcoming session',
-                    body: `Your ${session.name} session with ${trainee?.firstName} ${trainee?.lastName} is due to start within an hour`
+                    body: `Your ${session.name} session with ${trainee?.firstName} ${trainee?.lastName} is due to start within an hour`,
+                    badge: '1'
                 },
                 data: {
                     userId: trainer?.userId,
@@ -106,14 +108,15 @@ class NotificationsFunctions {
             const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
                 notification: {
                     title: "New session booked!",
-                    body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`
+                    body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`,
+                    badge: '1',
                 },
                 data: {
                     userId: trainer.userId,
                     type: NotificationType.NEW_BOOKING,
                     trainerCalender: trainer.calenderSettings.calenderId,
                     sessionId: sessionId
-                }
+                },
             };
 
             await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
@@ -137,7 +140,8 @@ class NotificationsFunctions {
                     const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
                         notification: {
                             title: "Your booking was cancelled!",
-                            body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`
+                            body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`,
+                            badge: '1',
                         },
                         data: {
                             userId: trainer.userId,
@@ -155,7 +159,8 @@ class NotificationsFunctions {
                     const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
                         notification: {
                             title: "Your booking was cancelled!",
-                            body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`
+                            body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`,
+                            badge: '1',
                         },
                         data: {
                             userId: trainee.userId,
