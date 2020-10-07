@@ -11,6 +11,8 @@ import {NotificationLog} from "../domain/NotificationLog";
 import {NotificationDataCancelledBooking} from "../domain/NotificationDataCancelledBooking";
 import {NotificationType} from "../domain/NotificationType";
 
+import {managementService} from "../Management/Management.service";
+
 class NotificationsFunctions {
     async bookingReminder(_context: EventContext) {
         const db = admin.firestore();
@@ -124,6 +126,33 @@ class NotificationsFunctions {
             console.log(
                 `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
             );
+        }
+    }
+
+    async sendTrainerVerifiedNotification(change: any) {
+        const trainerId = change.after.id
+        const trainer = change.after.data();
+        const beforeChange = change.before.data();
+        if (beforeChange.isApproved !== trainer.isApproved){
+            if (trainer.notificationSettings.events) {
+                if (trainer.isApproved) {
+                    await managementService.addVerificationEvent(trainerId)
+                    const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
+                        notification: {
+                            title: 'You have been approved!',
+                            body: 'A Trime human has approved your profile! Trainees can see you now!',
+                            badge: '1'
+                        },
+                        data: {
+                            userId: trainer?.userId
+                        }
+                    };
+                    await notificationService.send(null, trainer.userId, trainer.userId, payload)
+                    console.log(
+                        `Trainer verified notification has been successfully sent to ${trainer?.firstName}`
+                    );
+                }
+            }
         }
     }
 

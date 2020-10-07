@@ -15,6 +15,8 @@ exports.mailchimp = {
 exports.notifications = {
     onBookedDeal: functions.firestore.document('sessions/{sessions}').onCreate(notificationsFunctions.onBookedDeal),
     onCancelledDeal: functions.firestore.document('sessions/{sessions}').onUpdate(notificationsFunctions.onCancelledDeal),
+    trainerVerificationNotification: functions.firestore.document('trainers/{trainers}').onUpdate(notificationsFunctions.sendTrainerVerifiedNotification),
+
 };
 
 exports.bookingReminderNotification = functions.pubsub.schedule('every 5 minutes').onRun(context => notificationsFunctions.bookingReminder(context));
@@ -44,4 +46,5 @@ exports.management = {
     changeUID: functions.https.onCall(managementFunctions.changeUID),
     traineeWelcomeEmail: functions.firestore.document('trainees/{trainees}').onCreate(managementFunctions.traineeWelcomeEmail),
     trainerWelcomeEmail: functions.firestore.document('trainers/{trainers}').onCreate(managementFunctions.trainerWelcomeEmail),
+
 };
