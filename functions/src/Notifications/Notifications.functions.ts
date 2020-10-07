@@ -57,7 +57,7 @@ class NotificationsFunctions {
                 notification: {
                     title: 'Reminder: upcoming session',
                     body: `Your ${session?.name} session with ${trainer?.firstName} ${trainer?.lastName} is due to start within an hour`,
-                    badge: '1'
+                    badge: '1',
                 },
                 data: {
                     userId: trainee?.userId,

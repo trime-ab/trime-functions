@@ -36,13 +36,13 @@ class ManagementFunctions {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: "info@trime.app",
-                pass: "resistanceIsFut1le",
+                user: "noreply@trime.app",
+                pass: "AlSkywalker",
             }
         })
 
         const mailOptions = {
-            from: 'info@trime.app',
+            from: 'noreply@trime.app',
             to: traineeData.email,
             subject: 'You’re in! Welcome to Trime!',
             html: `<p style="font-size: 16px;">Hi There</p>
@@ -79,28 +79,20 @@ class ManagementFunctions {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: "info@trime.app",
-                pass: "resistanceIsFut1le",
+                user: "noreply@trime.app",
+                pass: "AlSkywalker",
             }
         })
 
         const mailOptions = {
-            from: 'info@trime.app',
+            from: 'noreply@trime.app',
             to: trainerData.email,
             subject: 'You’re in! Welcome to Trime!',
             html: `<p style="font-size: 16px;">Hi There</p>
                 <br />
                 <p>We’re excited to welcome you to Trime!</p>
                 <br />
-                <p>Now that you’ve created your profile, it’s time to find you the perfect trainer(s).</p>
-                <br />
-                <p>At Trime, we only work with certified trainers.</p>
-                <p>Every trainer application is reviewed by an actual Trime human, to make sure you get the experience you want. </p>
-                <br />
-                <p>In the app, you can find the trainer and training that’s perfect for you.</p>
-                <p>Select between map view and list view, filter on price, type of training or location. </p>
-                <br />
-                <p>So go ahead, dive in, get cracking… And have fun!</p>
+                <p>Now that you’ve created your profile, it’s time to find you the perfect trainee(s).</p>
                 <br />
                 <p>The Trime Team</p>
             `
