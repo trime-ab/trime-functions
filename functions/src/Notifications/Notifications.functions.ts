@@ -60,6 +60,8 @@ class NotificationsFunctions {
                     title: 'Reminder: upcoming session',
                     body: `Your ${session?.name} session with ${trainer?.firstName} ${trainer?.lastName} is due to start within an hour`,
                     badge: '1',
+                    sound: 'default',
+
                 },
                 data: {
                     userId: trainee?.userId,
@@ -78,7 +80,8 @@ class NotificationsFunctions {
                 notification: {
                     title: 'Reminder: upcoming session',
                     body: `Your ${session.name} session with ${trainee?.firstName} ${trainee?.lastName} is due to start within an hour`,
-                    badge: '1'
+                    badge: '1',
+                    sound: 'default',
                 },
                 data: {
                     userId: trainer?.userId,
@@ -112,11 +115,11 @@ class NotificationsFunctions {
                     title: "New session booked!",
                     body: `${trainee?.firstName} ${trainee?.lastName} booked a new session with you.`,
                     badge: '1',
+                    sound: 'default',
                 },
                 data: {
                     userId: trainer.userId,
                     type: NotificationType.NEW_BOOKING,
-                    trainerCalender: trainer.calenderSettings.calenderId,
                     sessionId: sessionId
                 },
             };
@@ -141,7 +144,8 @@ class NotificationsFunctions {
                         notification: {
                             title: 'You have been approved!',
                             body: 'A Trime human has approved your profile! Trainees can see you now!',
-                            badge: '1'
+                            badge: '1',
+                            sound: 'default',
                         },
                         data: {
                             userId: trainer?.userId
@@ -171,6 +175,7 @@ class NotificationsFunctions {
                             title: "Your booking was cancelled!",
                             body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`,
                             badge: '1',
+                            sound: 'default',
                         },
                         data: {
                             userId: trainer.userId,
@@ -190,6 +195,7 @@ class NotificationsFunctions {
                             title: "Your booking was cancelled!",
                             body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`,
                             badge: '1',
+                            sound: 'default',
                         },
                         data: {
                             userId: trainee.userId,
