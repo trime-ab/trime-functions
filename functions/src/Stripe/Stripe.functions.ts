@@ -7,11 +7,12 @@ const stripe = new Stripe(functions.config().stripe.testsecret, {
 });
 
 class StripeFunctions {
-    async createCustomer(data: { email: string }) {
+    async createCustomer(data: { email: string; name: string }) {
         try {
             const customer = await stripe.customers.create({
                 email: data.email,
-                description: "This is a Trime Trainee"
+                description: "Trime Trainee",
+                name: data.name,
             });
 
             console.log("Customer successfully created");
@@ -45,9 +46,9 @@ class StripeFunctions {
                 usage: "off_session",
                 payment_method: data.paymentId,
                 payment_method_options: {
-                  card: {
-                      request_three_d_secure: "automatic"
-                  },
+                    card: {
+                        request_three_d_secure: "automatic"
+                    },
                 },
             })
 
@@ -153,6 +154,7 @@ class StripeFunctions {
         lastName: string;
         trainerIp: any;
         vat: string;
+        currency: string;
     }) {
         try {
             const account = await stripe.accounts.create({
@@ -173,7 +175,7 @@ class StripeFunctions {
                     },
                 },
                 country: "SE",
-                default_currency: "sek",
+                default_currency: data.currency,
                 email: data.email,
                 individual: {
                     address: {
@@ -348,6 +350,59 @@ class StripeFunctions {
             console.warn("Unable to make payment", error);
             throw error;
         }
+    }
+
+    async createTraineeInvoiceItem(data: { stripeCustomerId: string; currency: any; amount: number }) {
+        try {
+            const invoiceItems = stripe.invoiceItems.create({
+                customer: data.stripeCustomerId,
+                currency: data.currency,
+                description: 'This is a test invoice payment',
+                amount: data.amount,
+            })
+            console.log('created Item')
+            return invoiceItems
+        } catch (error) {
+            console.warn("Unable to make Items", error);
+            throw error;
+        }
+
+    }
+
+    async createTraineeInvoice(data: {
+        stripeCustomerId: string;
+        stripeAccountId: string;
+        amount: number;
+        paymentMethod: string;
+    }) {
+        try {
+            const invoice = await stripe.invoices.create({
+                customer: data.stripeCustomerId,
+                auto_advance: true,
+                collection_method: "charge_automatically",
+                application_fee_amount: 3,
+                default_payment_method: data.paymentMethod,
+                default_tax_rates: ['txr_1Hcr6QKhxHsemyp6SCMSuL76'],
+                transfer_data: {
+                    destination: data.stripeAccountId,
+                },
+                footer: 'I am testing',
+            })
+
+            console.log('Invoice paid successfully')
+            return invoice
+        } catch (error) {
+            console.log('Unable to create Invoice');
+            throw error;
+        }
+    }
+    async finaliseInvoice(data: {
+        invoiceId: string
+    }) {
+        console.log('Finalising invoice')
+        await stripe.invoices.finalizeInvoice(data.invoiceId, { auto_advance: true })
+        console.log('Paying invoice')
+        return stripe.invoices.pay(data.invoiceId)
     }
 }
 
