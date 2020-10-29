@@ -400,9 +400,13 @@ class StripeFunctions {
         invoiceId: string
     }) {
         console.log('Finalising invoice')
-        await stripe.invoices.finalizeInvoice(data.invoiceId, { auto_advance: true })
-        console.log('Paying invoice')
-        return stripe.invoices.pay(data.invoiceId)
+        return stripe.invoices.finalizeInvoice(data.invoiceId, { auto_advance: true })
+    }
+    async retrievePaymentIntent(data: {
+        paymentIntentId: string
+    }) {
+        console.log()
+        return stripe.paymentIntents.retrieve(data.paymentIntentId)
     }
 }
 

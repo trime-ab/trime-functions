@@ -43,6 +43,7 @@ exports.stripe = {
     createTraineeInvoice: functions.https.onCall(stripeFunctions.createTraineeInvoice),
     createTraineeInvoiceItem: functions.https.onCall(stripeFunctions.createTraineeInvoiceItem),
     finaliseInvoice: functions.https.onCall(stripeFunctions.finaliseInvoice),
+    retrievePaymentIntent: functions.https.onCall(stripeFunctions.retrievePaymentIntent)
 };
 
 exports.management = {
