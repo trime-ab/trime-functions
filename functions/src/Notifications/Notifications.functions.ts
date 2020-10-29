@@ -26,28 +26,20 @@ class NotificationsFunctions {
             sessions.forEach(s => trainerIds.add(s.trainerId))
 
             const trainees: Trainee[] = await Promise.all(Array.from(traineeIds).map(async (id) => notificationService.getTrainee(db, id)));
-
             const trainers: Trainer[] = await Promise.all(Array.from(trainerIds).map(async (id) => notificationService.getTrainer(db, id)));
 
             const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
             for (const session of sessions) {
-
                 const trainee = trainees.find(t => t.id === session.traineeId)
-
                 const trainer = trainers.find(t => t.id === session.trainerId)
-                console.log('works up to here')
 
-                if (this.sessionReminderHasNotBeenSent(logs, session, trainee.id)) {
-                    console.log('I am the hammer')
+                if (this.sessionReminderHasNotBeenSent(logs, session, trainee.userId)) {
                     await this.sendTraineeSessionReminder(session, trainer, trainee);
-                    console.log('I am the tip of his spear')
                 }
-                console.log('The mail about his fist')
+
                 if (this.sessionReminderHasNotBeenSent(logs, session, trainer.id)) {
-                    console.log('I am the bane of his foes')
                     await this.sendTrainerSessionReminder(session, trainer, trainee);
-                    console.log('And the woes of the treacherous')
                 }
             }
         }
@@ -65,6 +57,7 @@ class NotificationsFunctions {
                 },
                 data: {
                     userId: trainee?.userId,
+                    type: NotificationType.BOOKING_REMINDER,
                 }
             };
             await notificationService.send(trainer?.userId, trainee?.userId, session?.id, payload)
@@ -85,6 +78,7 @@ class NotificationsFunctions {
                 },
                 data: {
                     userId: trainer?.userId,
+                    type: NotificationType.BOOKING_REMINDER,
                 }
             };
 

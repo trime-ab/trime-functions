@@ -19,7 +19,7 @@ exports.notifications = {
 
 };
 
-exports.bookingReminderNotification = functions.pubsub.schedule('every 5 minutes').onRun(context => notificationsFunctions.bookingReminder(context));
+exports.bookingReminderNotification = functions.pubsub.schedule('every 30 minutes').onRun(context => notificationsFunctions.bookingReminder(context));
 
 exports.stripe = {
     createCustomer: functions.https.onCall(stripeFunctions.createCustomer),

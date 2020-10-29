@@ -11,6 +11,23 @@ import DataMessagePayload = admin.messaging.DataMessagePayload;
 class NotificationService {
     private readonly COLLECTION = 'notificationLogs';
 
+    async BookingReminderNotificationLog(devices: Device[], recipientUserId: string, subjectId: string): Promise<string> {
+        const db = admin.firestore();
+        const notificationLog: NotificationLog = {
+            date: new Date(),
+            deviceIds: devices.map(device => device.id),
+            recipientUserId: recipientUserId,
+            senderUserId: 'System',
+            type: NotificationType.BOOKING_REMINDER,
+            subjectId: subjectId,
+        }
+
+        const collectionRef = db.collection(this.COLLECTION)
+        const doc = collectionRef.doc()
+        await doc.set(notificationLog)
+        return doc.id
+    }
+
     async addCancelledSessionNotificationLog(devices: Device[], senderUserId: string, recipientUserId: string, subjectId: string): Promise<string> {
       const db = admin.firestore();
       const notificationLog: NotificationLog = {
@@ -65,6 +82,9 @@ class NotificationService {
         if (payload.data.type === NotificationType.CANCELLED_BOOKING) {
             payload.data.notificationLogId = await this.addCancelledSessionNotificationLog(devices, senderUserId, recipientUserId, subjectId)
         }
+        if (payload.data.type === NotificationType.BOOKING_REMINDER) {
+            payload.data.notificationLogId = await this.BookingReminderNotificationLog(devices, recipientUserId, subjectId)
+        }
         await admin.messaging().sendToDevice(fcmKeys, payload);
     }
 
@@ -88,14 +108,15 @@ class NotificationService {
     async getTrainer(db: admin.firestore.Firestore, trainerId: string): Promise<Trainer> {
         const trainerRef = db.collection("trainers").doc(trainerId);
         const trainerSnapshot = await trainerRef.get();
-        return trainerSnapshot.data() as Trainer;
+        return { id: trainerSnapshot.id, ...trainerSnapshot.data()} as Trainer;
     }
     c
 
     async getTrainee(db: admin.firestore.Firestore, traineeId: string): Promise<Trainee> {
         const traineeRef = db.collection("trainees").doc(traineeId);
         const traineeSnapshot = await traineeRef.get();
-        return traineeSnapshot.data() as Trainee;
+
+        return {id: traineeSnapshot.id, ...traineeSnapshot.data()} as Trainee;
     }
 
     async getSessionsForReminder(db: admin.firestore.Firestore): Promise<Session[]> {
