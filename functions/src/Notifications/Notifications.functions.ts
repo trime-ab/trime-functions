@@ -31,15 +31,17 @@ class NotificationsFunctions {
             const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
             for (const session of sessions) {
-                const trainee = trainees.find(t => t.id === session.traineeId)
-                const trainer = trainers.find(t => t.id === session.trainerId)
+                if (!session.cancelled) {
+                    const trainee = trainees.find(t => t.id === session.traineeId)
+                    const trainer = trainers.find(t => t.id === session.trainerId)
 
-                if (this.sessionReminderHasNotBeenSent(logs, session, trainee.userId)) {
-                    await this.sendTraineeSessionReminder(session, trainer, trainee);
-                }
+                    if (this.sessionReminderHasNotBeenSent(logs, session, trainee.userId)) {
+                        await this.sendTraineeSessionReminder(session, trainer, trainee);
+                    }
 
-                if (this.sessionReminderHasNotBeenSent(logs, session, trainer.id)) {
-                    await this.sendTrainerSessionReminder(session, trainer, trainee);
+                    if (this.sessionReminderHasNotBeenSent(logs, session, trainer.userId)) {
+                        await this.sendTrainerSessionReminder(session, trainer, trainee);
+                    }
                 }
             }
         }
@@ -58,6 +60,7 @@ class NotificationsFunctions {
                 data: {
                     userId: trainee?.userId,
                     type: NotificationType.BOOKING_REMINDER,
+                    sessionId: session.id,
                 }
             };
             await notificationService.send(trainer?.userId, trainee?.userId, session?.id, payload)
@@ -79,12 +82,13 @@ class NotificationsFunctions {
                 data: {
                     userId: trainer?.userId,
                     type: NotificationType.BOOKING_REMINDER,
+                    sessionId: session.id,
                 }
             };
 
             await notificationService.send(trainee?.userId, trainer?.userId, session?.id, payload)
             console.log(
-                `Session reminder notification has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`
+                `Session reminder notification has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`
             );
         }
     }
@@ -130,7 +134,7 @@ class NotificationsFunctions {
         const trainerId = change.after.id
         const trainer = change.after.data();
         const beforeChange = change.before.data();
-        if (beforeChange.isApproved !== trainer.isApproved){
+        if (beforeChange.isApproved !== trainer.isApproved) {
             if (trainer.notificationSettings.events) {
                 if (trainer.isApproved) {
                     await managementService.addVerificationEvent(trainerId)

@@ -6,4 +6,5 @@ export interface Session {
   name: string
   trainerId: string
   traineeId: string
+  cancelled: boolean
 }
