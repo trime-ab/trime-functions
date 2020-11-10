@@ -153,7 +153,6 @@ class StripeFunctions {
         firstName: string;
         lastName: string;
         trainerIp: any;
-        vat: string;
         currency: string;
     }) {
         try {
@@ -197,9 +196,6 @@ class StripeFunctions {
                     email: data.email
                 },
                 settings: {
-                    payments: {
-                        statement_descriptor: `VAT: ${data.vat}`
-                    },
                     payouts: {
                         debit_negative_balances: true
                     }
@@ -286,22 +282,6 @@ class StripeFunctions {
         }
     }
 
-    async updateVat(data: { stripeAccountId: string, vat: string }) {
-        try {
-            console.log(data.stripeAccountId)
-            console.log(data.vat)
-            await stripe.accounts.update(data.stripeAccountId, {
-                settings: {
-                    payments: {
-                        statement_descriptor: `VAT: ${data.vat}`
-                    },
-                },
-            })
-        } catch (error) {
-            console.warn('unable to update account', error)
-        }
-    }
-
     async createRefund(data: {
         paymentId: string;
         amount: number;
@@ -319,45 +299,12 @@ class StripeFunctions {
         }
     }
 
-    async createPaymentIntent(data: {
-        amount: number;
-        stripeCustomerId: string;
-        trimeAmount: number;
-        stripeAccountId: string;
-        vatNumber: string;
-        email: string;
-    }) {
-        try {
-            const paymentIntent = await stripe.paymentIntents.create({
-                amount: data.amount,
-                currency: "sek",
-                customer: data.stripeCustomerId,
-                // application_fee_amount: data.trimeAmount,
-                description: "A charge for booking.",
-                statement_descriptor: `VAT No:${data.vatNumber}`,
-                receipt_email: data.email,
-                transfer_data: {
-                    destination: data.stripeAccountId
-                },
-                on_behalf_of: data.stripeAccountId,
-            });
-
-            console.log("Payment successfully made");
-            console.log(paymentIntent.id);
-
-            return paymentIntent;
-        } catch (error) {
-            console.warn("Unable to make payment", error);
-            throw error;
-        }
-    }
-
     async createTraineeInvoiceItem(data: { stripeCustomerId: string; currency: any; amount: number }) {
         try {
             const invoiceItems = stripe.invoiceItems.create({
                 customer: data.stripeCustomerId,
                 currency: data.currency,
-                description: 'This is a test invoice payment',
+                description: 'Personal training session',
                 amount: data.amount,
             })
             console.log('created Item')
@@ -374,19 +321,21 @@ class StripeFunctions {
         stripeAccountId: string;
         amount: number;
         paymentMethod: string;
+        trainerName: string;
+        vatNumber: string;
     }) {
         try {
             const invoice = await stripe.invoices.create({
                 customer: data.stripeCustomerId,
                 auto_advance: true,
                 collection_method: "charge_automatically",
-                application_fee_amount: 3,
+                application_fee_amount: 0,
                 default_payment_method: data.paymentMethod,
                 default_tax_rates: ['txr_1Hcr6QKhxHsemyp6SCMSuL76'],
                 transfer_data: {
                     destination: data.stripeAccountId,
                 },
-                footer: 'I am testing',
+                footer: `Vat number for ${data.trainerName}: ${data.vatNumber}`,
             })
 
             console.log('Invoice paid successfully')
