@@ -106,16 +106,6 @@ class StripeFunctions {
     }
   }
 
-  async getPaymentMethod(data: { paymentMethod: string }) {
-    try {
-      console.log('getting payment method')
-      return stripe.paymentMethods.retrieve(data.paymentMethod)
-    } catch (error) {
-      console.warn('Unable to get payment method')
-      throw error
-    }
-  }
-
   async getCustomer(stripeCustomerId: string) {
     try {
       return stripe.customers.retrieve(stripeCustomerId, {
