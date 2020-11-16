@@ -27,6 +27,7 @@ exports.stripe = {
     createCustomerCard: functions.https.onCall(stripeFunctions.createCustomerCard),
     createCustomerSetupIntent: functions.https.onCall(stripeFunctions.createCustomerSetupIntent),
     addCardToCustomer: functions.https.onCall(stripeFunctions.addCardToCustomer),
+    getPaymentMethod: functions.https.onCall(stripeFunctions.getPaymentMethod),
     getCustomer: functions.https.onCall(stripeFunctions.getCustomer),
     deleteCard: functions.https.onCall(stripeFunctions.deleteCard),
     deleteCustomer: functions.https.onCall(stripeFunctions.deleteCustomer),

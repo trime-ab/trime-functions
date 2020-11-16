@@ -106,10 +106,20 @@ class StripeFunctions {
     }
   }
 
+  async getPaymentMethod(data: { paymentMethod: string }) {
+    try {
+      console.log('getting payment method')
+      return stripe.paymentMethods.retrieve(data.paymentMethod)
+    } catch (error) {
+      console.warn('Unable to get payment method')
+      throw error
+    }
+  }
+
   async getCustomer(stripeCustomerId: string) {
     try {
       return stripe.customers.retrieve(stripeCustomerId, {
-        expand: ['invoice_settings.default_payment_method'],
+        expand: ['invoice_settings.default_payment_method.card'],
       })
     } catch (error) {
       console.warn('Unable to get customer', stripeCustomerId)
@@ -329,34 +339,32 @@ class StripeFunctions {
   }
 
   async createTraineeInvoice(data: {
-    stripeCustomerId: string
-    stripeAccountId: string
-    amount: number
-    paymentMethod: string
+    customerId: string
+    accountId: string
     trainerName: string
     vatNumber: string
   }) {
     try {
       const invoice = await stripe.invoices.create({
-        customer: data.stripeCustomerId,
+        customer: data.customerId,
         auto_advance: true,
         collection_method: 'charge_automatically',
         application_fee_amount: 0,
-        default_payment_method: data.paymentMethod,
         default_tax_rates: ['txr_1Hcr6QKhxHsemyp6SCMSuL76'],
         transfer_data: {
-          destination: data.stripeAccountId,
+          destination: data.accountId,
         },
         footer: `Vat number for ${data.trainerName}: ${data.vatNumber}`,
       })
 
-      console.log('Invoice paid successfully')
+      console.log('Invoice created successfully')
       return invoice
     } catch (error) {
       console.log('Unable to create Invoice')
       throw error
     }
   }
+
   async finaliseInvoice(data: { invoiceId: string }) {
     console.log('Finalising invoice')
     return stripe.invoices.finalizeInvoice(data.invoiceId, {
