@@ -26,7 +26,6 @@ exports.stripe = {
     updateDefaultPayment: functions.https.onCall(stripeFunctions.updateDefaultPayment),
     createCustomerCard: functions.https.onCall(stripeFunctions.createCustomerCard),
     createCustomerSetupIntent: functions.https.onCall(stripeFunctions.createCustomerSetupIntent),
-    addCardToCustomer: functions.https.onCall(stripeFunctions.addCardToCustomer),
     getPaymentMethod: functions.https.onCall(stripeFunctions.getPaymentMethod),
     getCustomer: functions.https.onCall(stripeFunctions.getCustomer),
     deleteCard: functions.https.onCall(stripeFunctions.deleteCard),
@@ -41,7 +40,7 @@ exports.stripe = {
     createTraineeInvoice: functions.https.onCall(stripeFunctions.createTraineeInvoice),
     createTraineeInvoiceItem: functions.https.onCall(stripeFunctions.createTraineeInvoiceItem),
     finaliseInvoice: functions.https.onCall(stripeFunctions.finaliseInvoice),
-    retrievePaymentIntent: functions.https.onCall(stripeFunctions.retrievePaymentIntent)
+    retrievePaymentIntent: functions.https.onCall(stripeFunctions.retrievePaymentIntent),
 };
 
 exports.management = {

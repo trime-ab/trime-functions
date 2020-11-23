@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { Address } from '../domain/Address/Address'
 import { SimpleDate } from '../domain/SimpleDate/SimpleDate'
 import Currency from '../domain/Currency/Currency'
+import {CreditCard} from "../domain/CreditCard";
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
   apiVersion: '2020-08-27',
@@ -23,8 +24,14 @@ class StripeFunctions {
 
       return customer.id
     } catch (error) {
-      console.warn('Unable to create customer in Stripe')
-      throw error
+      let message = 'Unable to create customer account'
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError(
+          'unknown',
+        message,
+        error,
+      )
     }
   }
 
@@ -39,35 +46,40 @@ class StripeFunctions {
 
   async createCustomerSetupIntent(data: {
     stripeCustomerId: string
-    paymentId: string
+    cardId: string
   }) {
     try {
-      console.log(data.paymentId)
-      return stripe.setupIntents.create({
+      console.log('My name is Jeff')
+      console.log(data.cardId)
+      // DO NOT CHANGE CONST BELOW
+      const result = await stripe.setupIntents.create({
         payment_method_types: ['card'],
         confirm: true,
         customer: data.stripeCustomerId,
         usage: 'off_session',
-        payment_method: data.paymentId,
+        payment_method: data.cardId,
         payment_method_options: {
           card: {
             request_three_d_secure: 'automatic',
           },
         },
       })
+      return result
     } catch (error) {
-      console.warn('Unable to attach card to customer', data.stripeCustomerId)
-      throw error
+      console.log('My name is jeff')
+      const message = `Unable to attach card to customer, ${data.stripeCustomerId}`
+      functions.logger.error(message, error)
+      console.log(Stripe.StripeError)
+      throw new functions.https.HttpsError(
+         'unknown',
+          message,
+          error,
+      )
+      // console.warn('Unable to attach card to customer', data.stripeCustomerId)
     }
   }
 
-  async createCustomerCard(data: {
-    number: string
-    expMonth: number
-    expYear: number
-    cvc: string
-    nameOnCard: string
-  }) {
+  async createCustomerCard(data: CreditCard) {
     try {
       const card = await stripe.paymentMethods.create({
         type: 'card',
@@ -85,24 +97,13 @@ class StripeFunctions {
       console.log(card.id)
       return card.id
     } catch (error) {
-      console.warn('Unable to attach card to customer')
-      throw error
-    }
-  }
-
-  async addCardToCustomer(data: {
-    stripeCustomerId: string
-    cardTokenId: string
-  }) {
-    try {
-      console.log('adding card to customer', data)
-      await stripe.customers.createSource(data.stripeCustomerId, {
-        source: data.cardTokenId,
-      })
-      console.log('Customer Card added successfully')
-    } catch (error) {
-      console.warn('Unable to add card to customer', data.stripeCustomerId)
-      throw error
+      const message = 'Unable to create Card Token';
+      console.warn(message)
+      throw new functions.https.HttpsError(
+          'unknown',
+          message,
+          error,
+      )
     }
   }
 
@@ -213,31 +214,14 @@ class StripeFunctions {
       console.log('Account successfully created')
       return account.id
     } catch (error) {
-      let message = 'Unable to create account'
+      const message = 'Unable to create account'
       functions.logger.error(message, error)
 
       throw new functions.https.HttpsError(
-        error instanceof Stripe.StripeError
-          ? this.translateToFunctionsErrorCode(error.type)
-          : 'unknown',
-        message,
-        error,
+          'unknown',
+          message,
+          error,
       )
-    }
-  }
-
-  private translateToFunctionsErrorCode(type: keyof Stripe.Errors) {
-    switch (type) {
-      case 'StripeInvalidRequestError':
-        return 'invalid-argument'
-      case 'StripeAuthenticationError':
-        return 'unauthenticated'
-      case 'StripePermissionError':
-        return 'permission-denied'
-      case 'StripeRateLimitError':
-        return 'resource-exhausted'
-      default:
-        return 'unknown'
     }
   }
 
@@ -371,6 +355,7 @@ class StripeFunctions {
       auto_advance: true,
     })
   }
+
   async retrievePaymentIntent(data: { paymentIntentId: string }) {
     console.log()
     return stripe.paymentIntents.retrieve(data.paymentIntentId)
