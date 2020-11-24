@@ -5,6 +5,7 @@ import { Address } from '../domain/Address/Address'
 import { SimpleDate } from '../domain/SimpleDate/SimpleDate'
 import Currency from '../domain/Currency/Currency'
 import {CreditCard} from "../domain/CreditCard";
+import Payment from "../domain/Payment";
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
   apiVersion: '2020-08-27',
@@ -299,17 +300,13 @@ class StripeFunctions {
     }
   }
 
-  async createTraineeInvoiceItem(data: {
-    stripeCustomerId: string
-    currency: any
-    amount: number
-  }) {
+  async createTraineeInvoiceItem(payment: Payment) {
     try {
       const invoiceItems = stripe.invoiceItems.create({
-        customer: data.stripeCustomerId,
-        currency: data.currency,
+        customer: payment.stripePayment.customerId,
+        currency: payment.currency,
         description: 'Personal training session',
-        amount: data.amount,
+        amount: payment.amount,
       })
       console.log('created Item')
       return invoiceItems
