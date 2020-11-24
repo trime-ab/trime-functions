@@ -77,9 +77,6 @@ class StripeFunctions {
           exp_year: data.expYear,
           cvc: data.cvc,
         },
-        billing_details: {
-          name: data.nameOnCard,
-        },
       })
       console.log('card sent')
       console.log(card.id)
