@@ -32,7 +32,7 @@ exports.stripe = {
     deleteCustomer: functions.https.onCall(stripeFunctions.deleteCustomer),
     createAccount: functions.https.onCall(stripeFunctions.createAccount),
     addBankToAccount: functions.https.onCall(stripeFunctions.addBankToAccount),
-    createBankAccountToken: functions.https.onCall(stripeFunctions.createBankAccountToken),
+    createTrainerBankAccountToken: functions.https.onCall(stripeFunctions.createTrainerBankAccount),
     getAccount: functions.https.onCall(stripeFunctions.getAccount),
     deleteBankAccount: functions.https.onCall(stripeFunctions.deleteBankAccount),
     deleteAccount: functions.https.onCall(stripeFunctions.deleteAccount),

@@ -222,14 +222,14 @@ class StripeFunctions {
     }
   }
 
-  async createBankAccountToken(data: {
+  async createTrainerBankAccount(data: {
     country: string
     currency: string
     name: string
     accountNumber: string
   }) {
     try {
-      const token = await stripe.tokens.create({
+      const  account = await stripe.tokens.create({
         bank_account: {
           country: data.country,
           currency: data.currency,
@@ -237,7 +237,7 @@ class StripeFunctions {
           account_number: data.accountNumber,
         },
       })
-      return token.id
+      return account.id
     } catch (error) {
       console.warn('Could not create bank account token')
       throw error
