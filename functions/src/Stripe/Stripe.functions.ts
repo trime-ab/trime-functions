@@ -4,8 +4,8 @@ import Stripe from 'stripe'
 import { Address } from '../domain/Address/Address'
 import { SimpleDate } from '../domain/SimpleDate/SimpleDate'
 import Currency from '../domain/Currency/Currency'
-import {CreditCard} from "../domain/CreditCard";
-import Payment from "../domain/Payment";
+import { CreditCard } from '../domain/CreditCard'
+import Payment from '../domain/Payment'
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
   apiVersion: '2020-08-27',
@@ -28,11 +28,7 @@ class StripeFunctions {
       let message = 'Unable to create customer account'
       functions.logger.error(message, error)
 
-      throw new functions.https.HttpsError(
-          'unknown',
-        message,
-        error,
-      )
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -71,11 +67,7 @@ class StripeFunctions {
       const message = `Unable to attach card to customer, ${data.stripeCustomerId}`
       functions.logger.error(message, error)
       console.log(Stripe.StripeError)
-      throw new functions.https.HttpsError(
-         'unknown',
-          message,
-          error,
-      )
+      throw new functions.https.HttpsError('unknown', message, error)
       // console.warn('Unable to attach card to customer', data.stripeCustomerId)
     }
   }
@@ -95,13 +87,9 @@ class StripeFunctions {
       console.log(card.id)
       return card.id
     } catch (error) {
-      const message = 'Unable to create Card Token';
+      const message = 'Unable to create Card Token'
       console.warn(message)
-      throw new functions.https.HttpsError(
-          'unknown',
-          message,
-          error,
-      )
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -215,11 +203,7 @@ class StripeFunctions {
       const message = 'Unable to create account'
       functions.logger.error(message, error)
 
-      throw new functions.https.HttpsError(
-          'unknown',
-          message,
-          error,
-      )
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -230,7 +214,7 @@ class StripeFunctions {
     accountNumber: string
   }) {
     try {
-      const  account = await stripe.tokens.create({
+      const account = await stripe.tokens.create({
         bank_account: {
           country: data.country,
           currency: data.currency,
@@ -354,6 +338,15 @@ class StripeFunctions {
     console.log()
     return stripe.paymentIntents.retrieve(data.paymentIntentId)
   }
+
+  async updateCustomerDetails(data: {
+    stripeCustomerId: string
+    email: string
+  }): Promise<Stripe.Customer> {
+    return stripe.customers.update(data.stripeCustomerId, { email: data.email })
+  }
+
+  async updateAccountDetails() {}
 }
 
 export const stripeFunctions = new StripeFunctions()
