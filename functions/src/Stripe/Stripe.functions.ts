@@ -348,99 +348,44 @@ class StripeFunctions {
 
   async updateAccountDetails(data: {
     stripeAccountId: string
-    email?: string
-    address?: Address
-    dob?: SimpleDate
-    phoneNumber?: string
-    firstName?: string
-    lastName?: string
+    email: string
+    address: Address
+    dob: SimpleDate
+    phoneNumber: string
+    firstName: string
+    lastName: string
   }) {
     try {
-      if (data.email) {
-        await this.updateAccountEmail(data.stripeAccountId, data.email)
-      }
-      if (data.address) {
-        await this.updateAccountAddress(data.stripeAccountId, data.address)
-      }
-      if (data.dob) {
-        await this.updateAccountDob(data.stripeAccountId, data.dob)
-      }
-      if (data.phoneNumber) {
-        await this.updateAccountPhoneNumber(
-          data.stripeAccountId,
-          data.phoneNumber,
-        )
-      }
-      if (data.firstName) {
-        await this.updateAccountFirstName(data.stripeAccountId, data.firstName)
-      }
-      if (data.lastName) {
-        await this.updateAccountLastName(data.stripeAccountId, data.lastName)
-      }
+      await stripe.accounts.update(data.stripeAccountId, {
+        business_profile: {
+          support_phone: data.phoneNumber,
+        },
+        email: data.email,
+        individual: {
+          address: {
+            line1: data.address.line1,
+            line2: data.address.line2,
+            postal_code: data.address.postalCode,
+            city: data.address.city,
+            state: data.address.state,
+          },
+          dob: {
+            day: data.dob.day,
+            month: data.dob.month,
+            year: data.dob.year,
+          },
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phoneNumber,
+          email: data.email,
+        },
+      })
+      return 'Updated Account'
     } catch (error) {
       throw new Error(
         'There was a problem updating your stripe details please contact trime support',
       )
     }
-  }
-
-  private updateAccountLastName(stripeAccountId: string, lastName: string) {
-    return stripe.accounts.update(stripeAccountId, {
-      individual: {
-        last_name: lastName,
-      },
-    })
-  }
-
-  private updateAccountFirstName(stripeAccountId: string, firstName: string) {
-    return stripe.accounts.update(stripeAccountId, {
-      individual: {
-        first_name: firstName,
-      },
-    })
-  }
-
-  private updateAccountDob(stripeAccountId: string, dob: SimpleDate) {
-    return stripe.accounts.update(stripeAccountId, {
-      individual: {
-        dob: {
-          day: dob.day,
-          month: dob.month,
-          year: dob.year,
-        },
-      },
-    })
-  }
-
-  private updateAccountEmail(stripeAccountId: string, email: string) {
-    return stripe.accounts.update(stripeAccountId, {
-      email: email,
-    })
-  }
-
-  private updateAccountAddress(stripeAccountId: string, address: Address) {
-    return stripe.accounts.update(stripeAccountId, {
-      individual: {
-        address: {
-          line1: address.line1,
-          line2: address.line2,
-          postal_code: address.postalCode,
-          city: address.city,
-          state: address.state,
-          country: address.country,
-        },
-      },
-    })
-  }
-
-  private updateAccountPhoneNumber(
-    stripeAccountId: string,
-    phoneNumber: string,
-  ) {
-    return stripe.accounts.update(stripeAccountId, {
-      individual: { phone: phoneNumber },
-      business_profile: { support_phone: phoneNumber },
-    })
   }
 }
 
