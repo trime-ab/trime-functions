@@ -355,28 +355,33 @@ class StripeFunctions {
     firstName?: string
     lastName?: string
   }) {
-    if (data.email) {
-      await this.updateAccountEmail(data.stripeAccountId, data.email)
-    }
-    if (data.address) {
-      await this.updateAccountAddress(data.stripeAccountId, data.address)
-    }
-    if (data.dob) {
-      await this.updateAccountDob(data.stripeAccountId, data.dob)
-    }
-    if (data.phoneNumber) {
-      await this.updateAccountPhoneNumber(
-        data.stripeAccountId,
-        data.phoneNumber,
+    try {
+      if (data.email) {
+        await this.updateAccountEmail(data.stripeAccountId, data.email)
+      }
+      if (data.address) {
+        await this.updateAccountAddress(data.stripeAccountId, data.address)
+      }
+      if (data.dob) {
+        await this.updateAccountDob(data.stripeAccountId, data.dob)
+      }
+      if (data.phoneNumber) {
+        await this.updateAccountPhoneNumber(
+          data.stripeAccountId,
+          data.phoneNumber,
+        )
+      }
+      if (data.firstName) {
+        await this.updateAccountFirstName(data.stripeAccountId, data.firstName)
+      }
+      if (data.lastName) {
+        await this.updateAccountLastName(data.stripeAccountId, data.lastName)
+      }
+    } catch (error) {
+      throw new Error(
+        'There was a problem updating your stripe details please contact trime support',
       )
     }
-    if (data.firstName) {
-      await this.updateAccountFirstName(data.stripeAccountId, data.firstName)
-    }
-    if (data.lastName) {
-      await this.updateAccountLastName(data.stripeAccountId, data.lastName)
-    }
-    return 'Done'
   }
 
   private updateAccountLastName(stripeAccountId: string, lastName: string) {
