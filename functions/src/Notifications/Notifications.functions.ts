@@ -98,14 +98,15 @@ class NotificationsFunctions {
         return !logs.some(log => log.subjectId === session.id && log.recipientUserId === recipientUserId);
     }
 
-    async onBookedDeal(snap: any) {
-        const sessionId = snap.id
-        const sessionData = snap.data();
+    async onBookedDeal(change: any) {
+        const sessionId = change.after.id
+        const sessionDataBefore = change.before.data();
+        const sessionDataAfter = change.after.data();
 
         const db = admin.firestore();
 
-        const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
-        const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
+        const trainee = await notificationService.getTrainee(db, sessionDataAfter.traineeId);
+        const trainer = await notificationService.getTrainer(db, sessionDataAfter.trainerId);
 
         if (trainer.notificationSettings.events) {
             const payload: TypedMessagingPayload<NotificationDataNewBooking> = {
@@ -121,8 +122,10 @@ class NotificationsFunctions {
                     sessionId: sessionId
                 },
             };
+            if (sessionDataBefore.paid !== sessionDataAfter.paid) {
+                await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+            }
 
-            await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
 
             console.log(
                 `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`

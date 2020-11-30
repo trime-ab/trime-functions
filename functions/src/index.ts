@@ -15,7 +15,7 @@ exports.mailchimp = {
 exports.notifications = {
   onBookedDeal: functions.firestore
     .document('sessions/{sessions}')
-    .onCreate(notificationsFunctions.onBookedDeal),
+    .onUpdate(notificationsFunctions.onBookedDeal),
   onCancelledDeal: functions.firestore
     .document('sessions/{sessions}')
     .onUpdate(notificationsFunctions.onCancelledDeal),
