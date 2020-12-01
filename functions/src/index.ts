@@ -42,7 +42,6 @@ exports.stripe = {
   getPaymentMethod: functions.https.onCall(stripeFunctions.getPaymentMethod),
   getCustomer: functions.https.onCall(stripeFunctions.getCustomer),
   deleteCard: functions.https.onCall(stripeFunctions.deleteCard),
-  deleteCustomer: functions.https.onCall(stripeFunctions.deleteCustomer),
   createAccount: functions.https.onCall(stripeFunctions.createAccount),
   addBankToAccount: functions.https.onCall(stripeFunctions.addBankToAccount),
   createTrainerBankAccountToken: functions.https.onCall(
@@ -50,7 +49,6 @@ exports.stripe = {
   ),
   getAccount: functions.https.onCall(stripeFunctions.getAccount),
   deleteBankAccount: functions.https.onCall(stripeFunctions.deleteBankAccount),
-  deleteAccount: functions.https.onCall(stripeFunctions.deleteAccount),
   createRefund: functions.https.onCall(stripeFunctions.createRefund),
   createTraineeInvoice: functions.https.onCall(
     stripeFunctions.createTraineeInvoice,

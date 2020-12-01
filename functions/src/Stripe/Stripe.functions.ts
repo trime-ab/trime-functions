@@ -126,14 +126,6 @@ class StripeFunctions {
     }
   }
 
-  async deleteCustomer(data: { stripeCustomerId: string }) {
-    try {
-      await stripe.customers.del(data.stripeCustomerId)
-    } catch (error) {
-      console.warn('Unable to delete account')
-    }
-  }
-
   async createAccount(data: {
     email: string
     address: Address
@@ -235,7 +227,6 @@ class StripeFunctions {
   }) {
     try {
       await stripe.accounts.createExternalAccount(data.stripeAccountId, {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         external_account: data.bankAccountTokenId,
       })
       console.log('Bank Account added successfully')
@@ -247,27 +238,24 @@ class StripeFunctions {
 
   async getAccount(stripeAccountId: string) {
     try {
-      const account = await stripe.accounts.retrieve(stripeAccountId)
-      return account
+      return stripe.accounts.retrieve(stripeAccountId)
     } catch (error) {
       console.warn('Unable to get account', stripeAccountId)
       throw error
     }
   }
 
-  async deleteBankAccount(data: { stripeAccountId: string; id: string }) {
+  async deleteBankAccount(data: {
+    stripeAccountId: string
+    bankAccountId: string
+  }) {
     try {
-      await stripe.accounts.deleteExternalAccount(data.stripeAccountId, data.id)
+      await stripe.accounts.deleteExternalAccount(
+        data.stripeAccountId,
+        data.bankAccountId,
+      )
     } catch (error) {
-      console.warn('Unable to delete Bank account from account', error)
-    }
-  }
-
-  async deleteAccount(data: { stripeAccountId: string }) {
-    try {
-      await stripe.accounts.del(data.stripeAccountId)
-    } catch (error) {
-      console.warn('Unable to delete account', error)
+      console.warn('Unable to remove Bank account from account', error)
     }
   }
 
