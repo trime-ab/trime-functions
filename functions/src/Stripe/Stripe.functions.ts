@@ -36,9 +36,16 @@ class StripeFunctions {
     stripeCustomerId: string
     paymentId: string
   }) {
-    return stripe.customers.update(data.stripeCustomerId, {
-      invoice_settings: { default_payment_method: data.paymentId },
-    })
+    try {
+      return stripe.customers.update(data.stripeCustomerId, {
+        invoice_settings: { default_payment_method: data.paymentId },
+      })
+    } catch (error) {
+      const message = 'Unable to update account default payment'
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
   }
 
   async createCustomerSetupIntent(data: {
@@ -46,8 +53,6 @@ class StripeFunctions {
     cardId: string
   }) {
     try {
-      console.log('My name is Jeff')
-      console.log(data.cardId)
       // DO NOT CHANGE CONST BELOW
       const result = await stripe.setupIntents.create({
         payment_method_types: ['card'],
@@ -68,7 +73,6 @@ class StripeFunctions {
       functions.logger.error(message, error)
       console.log(Stripe.StripeError)
       throw new functions.https.HttpsError('unknown', message, error)
-      // console.warn('Unable to attach card to customer', data.stripeCustomerId)
     }
   }
 
@@ -88,7 +92,7 @@ class StripeFunctions {
       return card.id
     } catch (error) {
       const message = 'Unable to create Card Token'
-      console.warn(message)
+      functions.logger.error(message, error)
       throw new functions.https.HttpsError('unknown', message, error)
     }
   }
@@ -98,8 +102,9 @@ class StripeFunctions {
       console.log('getting payment method')
       return stripe.paymentMethods.retrieve(data.paymentMethod)
     } catch (error) {
-      console.warn('Unable to get payment method')
-      throw error
+      const message = 'Unable to get payment method'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -110,7 +115,9 @@ class StripeFunctions {
       })
     } catch (error) {
       console.warn('Unable to get customer', stripeCustomerId)
-      throw error
+      const message = 'Unable to get Customer'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -122,7 +129,9 @@ class StripeFunctions {
         'Unable to delete card from account',
         data.default_payment_method,
       )
-      throw error
+      const message = 'Unable to delete card'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -216,8 +225,10 @@ class StripeFunctions {
       })
       return account.id
     } catch (error) {
-      console.warn('Could not create bank account token')
-      throw error
+      const message = 'Unable to create Bank Account'
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -231,8 +242,10 @@ class StripeFunctions {
       })
       console.log('Bank Account added successfully')
     } catch (error) {
-      console.warn('Unable to add bank account', data.stripeAccountId)
-      throw error
+      const message = `Unable to attach to stripe account ${data.stripeAccountId}`
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -240,8 +253,10 @@ class StripeFunctions {
     try {
       return stripe.accounts.retrieve(stripeAccountId)
     } catch (error) {
-      console.warn('Unable to get account', stripeAccountId)
-      throw error
+      const message = `Unable to get account details`
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -255,7 +270,9 @@ class StripeFunctions {
         data.bankAccountId,
       )
     } catch (error) {
-      console.warn('Unable to remove Bank account from account', error)
+      const message = 'Unable to delete bank account'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -268,7 +285,9 @@ class StripeFunctions {
       })
       console.log('refund was made successfully')
     } catch (error) {
-      console.warn('unable to refund money', error)
+      const message = 'Unable to refund money'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -283,8 +302,9 @@ class StripeFunctions {
       console.log('created Item')
       return invoiceItems
     } catch (error) {
-      console.warn('Unable to make Items', error)
-      throw error
+      const message = 'Unable to make items'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -311,7 +331,9 @@ class StripeFunctions {
       return invoice
     } catch (error) {
       console.log('Unable to create Invoice')
-      throw error
+      const message = 'Unable to make invoice'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -322,16 +344,29 @@ class StripeFunctions {
     })
   }
 
-  async retrievePaymentIntent(data: { paymentIntentId: string }) {
-    console.log()
-    return stripe.paymentIntents.retrieve(data.paymentIntentId)
+  async retrievePaymentIntent(paymentIntentId: string) {
+    try {
+      return stripe.paymentIntents.retrieve(paymentIntentId)
+    } catch (error) {
+      const message = 'Unable to fetch payment intent'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
   }
 
   async updateCustomerDetails(data: {
     stripeCustomerId: string
     email: string
   }): Promise<Stripe.Customer> {
-    return stripe.customers.update(data.stripeCustomerId, { email: data.email })
+    try {
+      return stripe.customers.update(data.stripeCustomerId, {
+        email: data.email,
+      })
+    } catch (error) {
+      const message = 'Unable to update customer'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
   }
 
   async updateAccountDetails(data: {
@@ -370,9 +405,9 @@ class StripeFunctions {
       })
       return 'Updated Account'
     } catch (error) {
-      throw new Error(
-        'There was a problem updating your stripe details please contact trime support',
-      )
+      const message = 'Unable to update Account'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 }
