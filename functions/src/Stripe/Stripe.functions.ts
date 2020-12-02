@@ -5,7 +5,7 @@ import { Address } from '../domain/Address/Address'
 import { SimpleDate } from '../domain/SimpleDate/SimpleDate'
 import Currency from '../domain/Currency/Currency'
 import { CreditCard } from '../domain/CreditCard'
-import Payment from '../domain/Payment'
+import { Payment } from '../domain/Payment'
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
   apiVersion: '2020-08-27',
@@ -276,11 +276,11 @@ class StripeFunctions {
     }
   }
 
-  async createRefund(data: { paymentId: string; amount: number }) {
+  async createRefund(payment: Payment) {
     try {
       await stripe.refunds.create({
-        payment_intent: data.paymentId,
-        amount: data.amount,
+        payment_intent: payment.id,
+        amount: payment.amount * 100,
         reason: 'requested_by_customer',
       })
       console.log('refund was made successfully')
@@ -294,10 +294,10 @@ class StripeFunctions {
   async createTraineeInvoiceItem(payment: Payment) {
     try {
       const invoiceItems = stripe.invoiceItems.create({
-        customer: payment.stripePayment.customerId,
+        customer: payment.customerId,
         currency: payment.currency,
-        description: 'Personal training session',
-        amount: payment.amount,
+        description: payment.dealName,
+        amount: payment.amount * 100,
       })
       console.log('created Item')
       return invoiceItems
@@ -313,6 +313,7 @@ class StripeFunctions {
     accountId: string
     trainerName: string
     vatNumber: string
+    paymentMethodId: string
   }) {
     try {
       const invoice = await stripe.invoices.create({
@@ -320,6 +321,7 @@ class StripeFunctions {
         auto_advance: true,
         collection_method: 'charge_automatically',
         application_fee_amount: 0,
+        default_payment_method: data.paymentMethodId,
         default_tax_rates: ['txr_1Hcr6QKhxHsemyp6SCMSuL76'],
         transfer_data: {
           destination: data.accountId,
@@ -337,7 +339,7 @@ class StripeFunctions {
     }
   }
 
-  async finaliseInvoice(data: { invoiceId: string }) {
+  async finaliseInvoice(data: { invoiceId: string }): Promise<Stripe.Invoice> {
     console.log('Finalising invoice')
     return stripe.invoices.finalizeInvoice(data.invoiceId, {
       auto_advance: true,
