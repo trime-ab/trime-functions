@@ -23,7 +23,7 @@
     "mailchimp-api-v3": "^1.13.1",
     "nodemailer": "^6.4.11",
     "prettier": "^2.1.2",
-    "stripe": "8.121.0"
+    "stripe": "8.125.0"
   },
   "devDependencies": {
     "firebase-functions-test": "^0.1.6",

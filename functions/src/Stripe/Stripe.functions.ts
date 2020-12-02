@@ -4,6 +4,8 @@ import Stripe from 'stripe'
 import { Address } from '../domain/Address/Address'
 import { SimpleDate } from '../domain/SimpleDate/SimpleDate'
 import Currency from '../domain/Currency/Currency'
+import { CreditCard } from '../domain/CreditCard'
+import { Payment } from '../domain/Payment'
 
 const stripe = new Stripe(functions.config().stripe.testsecret, {
   apiVersion: '2020-08-27',
@@ -23,8 +25,10 @@ class StripeFunctions {
 
       return customer.id
     } catch (error) {
-      console.warn('Unable to create customer in Stripe')
-      throw error
+      let message = 'Unable to create customer account'
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -32,42 +36,47 @@ class StripeFunctions {
     stripeCustomerId: string
     paymentId: string
   }) {
-    return stripe.customers.update(data.stripeCustomerId, {
-      invoice_settings: { default_payment_method: data.paymentId },
-    })
+    try {
+      return stripe.customers.update(data.stripeCustomerId, {
+        invoice_settings: { default_payment_method: data.paymentId },
+      })
+    } catch (error) {
+      const message = 'Unable to update account default payment'
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
   }
 
   async createCustomerSetupIntent(data: {
     stripeCustomerId: string
-    paymentId: string
+    cardId: string
   }) {
     try {
-      console.log(data.paymentId)
-      return stripe.setupIntents.create({
+      // DO NOT CHANGE CONST BELOW
+      const result = await stripe.setupIntents.create({
         payment_method_types: ['card'],
         confirm: true,
         customer: data.stripeCustomerId,
         usage: 'off_session',
-        payment_method: data.paymentId,
+        payment_method: data.cardId,
         payment_method_options: {
           card: {
             request_three_d_secure: 'automatic',
           },
         },
       })
+      return result
     } catch (error) {
-      console.warn('Unable to attach card to customer', data.stripeCustomerId)
-      throw error
+      console.log('My name is jeff')
+      const message = `Unable to attach card to customer, ${data.stripeCustomerId}`
+      functions.logger.error(message, error)
+      console.log(Stripe.StripeError)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
-  async createCustomerCard(data: {
-    number: string
-    expMonth: number
-    expYear: number
-    cvc: string
-    nameOnCard: string
-  }) {
+  async createCustomerCard(data: CreditCard) {
     try {
       const card = await stripe.paymentMethods.create({
         type: 'card',
@@ -82,24 +91,9 @@ class StripeFunctions {
       console.log(card.id)
       return card.id
     } catch (error) {
-      console.warn('Unable to attach card to customer')
-      throw error
-    }
-  }
-
-  async addCardToCustomer(data: {
-    stripeCustomerId: string
-    cardTokenId: string
-  }) {
-    try {
-      console.log('adding card to customer', data)
-      await stripe.customers.createSource(data.stripeCustomerId, {
-        source: data.cardTokenId,
-      })
-      console.log('Customer Card added successfully')
-    } catch (error) {
-      console.warn('Unable to add card to customer', data.stripeCustomerId)
-      throw error
+      const message = 'Unable to create Card Token'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -108,8 +102,9 @@ class StripeFunctions {
       console.log('getting payment method')
       return stripe.paymentMethods.retrieve(data.paymentMethod)
     } catch (error) {
-      console.warn('Unable to get payment method')
-      throw error
+      const message = 'Unable to get payment method'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -120,7 +115,9 @@ class StripeFunctions {
       })
     } catch (error) {
       console.warn('Unable to get customer', stripeCustomerId)
-      throw error
+      const message = 'Unable to get Customer'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -132,15 +129,9 @@ class StripeFunctions {
         'Unable to delete card from account',
         data.default_payment_method,
       )
-      throw error
-    }
-  }
-
-  async deleteCustomer(data: { stripeCustomerId: string }) {
-    try {
-      await stripe.customers.del(data.stripeCustomerId)
-    } catch (error) {
-      console.warn('Unable to delete account')
+      const message = 'Unable to delete card'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -210,42 +201,21 @@ class StripeFunctions {
       console.log('Account successfully created')
       return account.id
     } catch (error) {
-      let message = 'Unable to create account'
+      const message = 'Unable to create account'
       functions.logger.error(message, error)
 
-      throw new functions.https.HttpsError(
-        error instanceof Stripe.StripeError
-          ? this.translateToFunctionsErrorCode(error.type)
-          : 'unknown',
-        message,
-        error,
-      )
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
-  private translateToFunctionsErrorCode(type: keyof Stripe.Errors) {
-    switch (type) {
-      case 'StripeInvalidRequestError':
-        return 'invalid-argument'
-      case 'StripeAuthenticationError':
-        return 'unauthenticated'
-      case 'StripePermissionError':
-        return 'permission-denied'
-      case 'StripeRateLimitError':
-        return 'resource-exhausted'
-      default:
-        return 'unknown'
-    }
-  }
-
-  async createBankAccountToken(data: {
+  async createTrainerBankAccount(data: {
     country: string
     currency: string
     name: string
     accountNumber: string
   }) {
     try {
-      const token = await stripe.tokens.create({
+      const account = await stripe.tokens.create({
         bank_account: {
           country: data.country,
           currency: data.currency,
@@ -253,10 +223,12 @@ class StripeFunctions {
           account_number: data.accountNumber,
         },
       })
-      return token.id
+      return account.id
     } catch (error) {
-      console.warn('Could not create bank account token')
-      throw error
+      const message = 'Unable to create Bank Account'
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -266,72 +238,73 @@ class StripeFunctions {
   }) {
     try {
       await stripe.accounts.createExternalAccount(data.stripeAccountId, {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         external_account: data.bankAccountTokenId,
       })
       console.log('Bank Account added successfully')
     } catch (error) {
-      console.warn('Unable to add bank account', data.stripeAccountId)
-      throw error
+      const message = `Unable to attach to stripe account ${data.stripeAccountId}`
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
   async getAccount(stripeAccountId: string) {
     try {
-      const account = await stripe.accounts.retrieve(stripeAccountId)
-      return account
+      return stripe.accounts.retrieve(stripeAccountId)
     } catch (error) {
-      console.warn('Unable to get account', stripeAccountId)
-      throw error
+      const message = `Unable to get account details`
+      functions.logger.error(message, error)
+
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
-  async deleteBankAccount(data: { stripeAccountId: string; id: string }) {
+  async deleteBankAccount(data: {
+    stripeAccountId: string
+    bankAccountId: string
+  }) {
     try {
-      await stripe.accounts.deleteExternalAccount(data.stripeAccountId, data.id)
+      await stripe.accounts.deleteExternalAccount(
+        data.stripeAccountId,
+        data.bankAccountId,
+      )
     } catch (error) {
-      console.warn('Unable to delete Bank account from account', error)
+      const message = 'Unable to delete bank account'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
-  async deleteAccount(data: { stripeAccountId: string }) {
-    try {
-      await stripe.accounts.del(data.stripeAccountId)
-    } catch (error) {
-      console.warn('Unable to delete account', error)
-    }
-  }
-
-  async createRefund(data: { paymentId: string; amount: number }) {
+  async createRefund(payment: Payment) {
     try {
       await stripe.refunds.create({
-        payment_intent: data.paymentId,
-        amount: data.amount,
+        payment_intent: payment.id,
+        amount: payment.amount * 100,
         reason: 'requested_by_customer',
       })
       console.log('refund was made successfully')
     } catch (error) {
-      console.warn('unable to refund money', error)
+      const message = 'Unable to refund money'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
-  async createTraineeInvoiceItem(data: {
-    stripeCustomerId: string
-    currency: any
-    amount: number
-  }) {
+  async createTraineeInvoiceItem(payment: Payment) {
     try {
       const invoiceItems = stripe.invoiceItems.create({
-        customer: data.stripeCustomerId,
-        currency: data.currency,
-        description: 'Personal training session',
-        amount: data.amount,
+        customer: payment.customerId,
+        currency: payment.currency,
+        description: payment.dealName,
+        amount: payment.amount * 100,
       })
       console.log('created Item')
       return invoiceItems
     } catch (error) {
-      console.warn('Unable to make Items', error)
-      throw error
+      const message = 'Unable to make items'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
@@ -340,6 +313,7 @@ class StripeFunctions {
     accountId: string
     trainerName: string
     vatNumber: string
+    paymentMethodId: string
   }) {
     try {
       const invoice = await stripe.invoices.create({
@@ -347,6 +321,7 @@ class StripeFunctions {
         auto_advance: true,
         collection_method: 'charge_automatically',
         application_fee_amount: 0,
+        default_payment_method: data.paymentMethodId,
         default_tax_rates: ['txr_1Hcr6QKhxHsemyp6SCMSuL76'],
         transfer_data: {
           destination: data.accountId,
@@ -358,19 +333,84 @@ class StripeFunctions {
       return invoice
     } catch (error) {
       console.log('Unable to create Invoice')
-      throw error
+      const message = 'Unable to make invoice'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
     }
   }
 
-  async finaliseInvoice(data: { invoiceId: string }) {
+  async finaliseInvoice(data: { invoiceId: string }): Promise<Stripe.Invoice> {
     console.log('Finalising invoice')
     return stripe.invoices.finalizeInvoice(data.invoiceId, {
       auto_advance: true,
     })
   }
-  async retrievePaymentIntent(data: { paymentIntentId: string }) {
-    console.log()
-    return stripe.paymentIntents.retrieve(data.paymentIntentId)
+
+  async retrievePaymentIntent(paymentIntentId: string) {
+    try {
+      return stripe.paymentIntents.retrieve(paymentIntentId)
+    } catch (error) {
+      const message = 'Unable to fetch payment intent'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
+  }
+
+  async updateCustomerDetails(data: {
+    stripeCustomerId: string
+    email: string
+  }): Promise<Stripe.Customer> {
+    try {
+      return stripe.customers.update(data.stripeCustomerId, {
+        email: data.email,
+      })
+    } catch (error) {
+      const message = 'Unable to update customer'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
+  }
+
+  async updateAccountDetails(data: {
+    stripeAccountId: string
+    email: string
+    address: Address
+    dob: SimpleDate
+    phoneNumber: string
+    firstName: string
+    lastName: string
+  }) {
+    try {
+      await stripe.accounts.update(data.stripeAccountId, {
+        business_profile: {
+          support_phone: data.phoneNumber,
+        },
+        email: data.email,
+        individual: {
+          address: {
+            line1: data.address.line1,
+            line2: data.address.line2,
+            postal_code: data.address.postalCode,
+            city: data.address.city,
+            state: data.address.state,
+          },
+          dob: {
+            day: data.dob.day,
+            month: data.dob.month,
+            year: data.dob.year,
+          },
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phoneNumber,
+          email: data.email,
+        },
+      })
+      return 'Updated Account'
+    } catch (error) {
+      const message = 'Unable to update Account'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
   }
 }
 
