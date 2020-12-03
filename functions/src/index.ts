@@ -44,7 +44,7 @@ exports.stripe = {
   deleteCard: functions.https.onCall(stripeFunctions.deleteCard),
   createAccount: functions.https.onCall(stripeFunctions.createAccount),
   addBankToAccount: functions.https.onCall(stripeFunctions.addBankToAccount),
-  createTrainerBankAccountToken: functions.https.onCall(
+  createTrainerBankAccount: functions.https.onCall(
     stripeFunctions.createTrainerBankAccount,
   ),
   getAccount: functions.https.onCall(stripeFunctions.getAccount),

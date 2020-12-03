@@ -234,11 +234,12 @@ class StripeFunctions {
 
   async addBankToAccount(data: {
     stripeAccountId: string
-    bankAccountTokenId: string
+    bankAccountId: string
   }) {
     try {
       await stripe.accounts.createExternalAccount(data.stripeAccountId, {
-        external_account: data.bankAccountTokenId,
+        external_account: data.bankAccountId,
+        default_for_currency: true,
       })
       console.log('Bank Account added successfully')
     } catch (error) {
