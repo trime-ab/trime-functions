@@ -3,7 +3,33 @@ import * as functions from 'firebase-functions'
 
 import nodemailer from 'nodemailer'
 
+
 class ManagementFunctions {
+  backupDatabase() {
+    const client = new admin.firestore.v1.FirestoreAdminClient()
+
+    const projectId = process.env.GCP_PROJECT ||process.env.GCLOUD_PROJECT
+    const databaseName = client.databasePath(projectId, '(default)')
+
+    return client.exportDocuments({
+      name: databaseName,
+      // Add your bucket name here
+      outputUriPrefix: 'gs://trime_backup_prod',
+      // Empty array == all collections
+      collectionIds: []
+    })
+      // tslint:disable-next-line:no-shadowed-variable
+      .then(([response]) => {
+        console.log(`Operation Name: ${response.name}`)
+        return response
+      })
+      .catch(error => {
+        console.error(error)
+        throw new Error('Export operation failed')
+      })
+  }
+
+
   async changeUID(data: { email: string; uid: string }) {
     const email = `${data.email}`
 
@@ -99,7 +125,7 @@ class ManagementFunctions {
                  <p>Whilst you wait it would be best to add your bank account to your profile so you can be paid for your workouts.</p>
                  <br />
                  <p>So go ahead, dive in, get cracking… And have fun!</p>
-                 <br/>  
+                 <br/>
                 <p>The Trime Team</p>
             `,
     }

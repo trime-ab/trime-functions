@@ -1,9 +1,9 @@
 import * as functions from 'firebase-functions'
 
 import mailChimpFunctions from './MailChimp/MailChimp.functions'
-import { stripeFunctions } from './Stripe/Stripe.functions'
-import { notificationsFunctions } from './Notifications/Notifications.functions'
-import { managementFunctions } from './Management/Management.functions'
+import {stripeFunctions} from './Stripe/Stripe.functions'
+import {notificationsFunctions} from './Notifications/Notifications.functions'
+import {managementFunctions} from './Management/Management.functions'
 
 const admin = require('firebase-admin')
 admin.initializeApp({})
@@ -27,6 +27,8 @@ exports.notifications = {
 exports.bookingReminderNotification = functions.pubsub
   .schedule('every 30 minutes')
   .onRun((context) => notificationsFunctions.bookingReminder(context))
+
+exports.backupProductionDatabase = functions.pubsub.schedule('every 24 hours').onRun(managementFunctions.backupDatabase)
 
 exports.stripe = {
   createCustomer: functions.https.onCall(stripeFunctions.createCustomer),
