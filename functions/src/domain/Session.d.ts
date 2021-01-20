@@ -7,4 +7,5 @@ export interface Session {
   trainerId: string
   traineeId: string
   cancelled: boolean
+  paid: boolean
 }
