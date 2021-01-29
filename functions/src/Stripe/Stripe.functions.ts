@@ -7,7 +7,7 @@ import Currency from '../domain/Currency/Currency'
 import { CreditCard } from '../domain/CreditCard'
 import { Payment } from '../domain/Payment'
 
-const stripe = new Stripe(functions.config().stripe.testsecret, {
+const stripe = new Stripe(functions.config().stripe.livesecretkey, {
   apiVersion: '2020-08-27',
 })
 
