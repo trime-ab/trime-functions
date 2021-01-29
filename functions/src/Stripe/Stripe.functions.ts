@@ -58,7 +58,7 @@ class StripeFunctions {
         payment_method_types: ['card'],
         confirm: true,
         customer: data.stripeCustomerId,
-        usage: 'off_session',
+        usage: 'on_session',
         payment_method: data.cardId,
         payment_method_options: {
           card: {
@@ -323,7 +323,7 @@ class StripeFunctions {
         collection_method: 'charge_automatically',
         application_fee_amount: 0,
         default_payment_method: data.paymentMethodId,
-        default_tax_rates: ['txr_1Hcr6QKhxHsemyp6SCMSuL76'],
+        default_tax_rates: ['txr_1Hcr2LKhxHsemyp66tubMphx'],
         transfer_data: {
           destination: data.accountId,
         },
