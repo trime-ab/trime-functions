@@ -280,7 +280,7 @@ class StripeFunctions {
   async createRefund(payment: Payment) {
     try {
       await stripe.refunds.create({
-        payment_intent: payment.id,
+        payment_intent: payment.externalId,
         amount: payment.amount * 100,
         reason: 'requested_by_customer',
       })
