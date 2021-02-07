@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "trime-9d15f"
+    "default": "trime-9d15f",
+    "dev": "trime-dev"
   }
 }
