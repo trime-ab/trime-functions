@@ -312,6 +312,7 @@ class StripeFunctions {
   async createTraineeInvoice(data: {
     customerId: string
     accountId: string
+    trimeAmount: number
     trainerName: string
     vatNumber: string
     paymentMethodId: string
@@ -321,7 +322,7 @@ class StripeFunctions {
         customer: data.customerId,
         auto_advance: true,
         collection_method: 'charge_automatically',
-        application_fee_amount: 0,
+        application_fee_amount: data.trimeAmount,
         default_payment_method: data.paymentMethodId,
         default_tax_rates: ['txr_1Hcr2LKhxHsemyp66tubMphx'],
         transfer_data: {
