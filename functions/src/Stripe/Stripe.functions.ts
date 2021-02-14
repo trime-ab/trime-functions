@@ -296,7 +296,7 @@ class StripeFunctions {
     try {
       const invoiceItems = stripe.invoiceItems.create({
         customer: payment.customerId,
-        currency: payment.currency,
+        currency: 'sek',
         description: payment.dealName,
         amount: payment.amount * 100,
       })
@@ -410,6 +410,22 @@ class StripeFunctions {
       return 'Updated Account'
     } catch (error) {
       const message = 'Unable to update Account'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
+  }
+
+  async addPromotionalCode(data: {
+    stripeCustomerId: string
+    discountCode: string
+  }) {
+    try {
+      await stripe.customers.update(data.stripeCustomerId, {
+        promotion_code: data.discountCode
+      })
+      return 'updated Account'
+    } catch (error) {
+      const message = 'Unable to add promotional code'
       functions.logger.error(message, error)
       throw new functions.https.HttpsError('unknown', message, error)
     }

@@ -68,6 +68,7 @@ exports.stripe = {
   updateAccountDetails: functions.https.onCall(
     stripeFunctions.updateAccountDetails,
   ),
+  addPromotionalCode: functions.https.onCall(stripeFunctions.addPromotionalCode)
 }
 
 exports.management = {
