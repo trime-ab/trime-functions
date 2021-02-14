@@ -324,7 +324,7 @@ class StripeFunctions {
         collection_method: 'charge_automatically',
         application_fee_amount: data.trimeAmount,
         default_payment_method: data.paymentMethodId,
-        default_tax_rates: ['txr_1Hcr2LKhxHsemyp66tubMphx'],
+        default_tax_rates: [functions.config().stripe.taxcode],
         transfer_data: {
           destination: data.accountId,
         },
@@ -421,7 +421,7 @@ class StripeFunctions {
   }) {
     try {
       await stripe.customers.update(data.stripeCustomerId, {
-        promotion_code: data.discountCode
+        coupon: data.discountCode
       })
       return 'updated Account'
     } catch (error) {
