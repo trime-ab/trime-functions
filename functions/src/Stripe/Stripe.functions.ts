@@ -320,13 +320,14 @@ class StripeFunctions {
     try {
       const invoice = await stripe.invoices.create({
         customer: data.customerId,
-        auto_advance: true,
+        auto_advance: false,
         collection_method: 'charge_automatically',
         application_fee_amount: data.trimeAmount,
         default_payment_method: data.paymentMethodId,
         default_tax_rates: [functions.config().stripe.taxcode],
         transfer_data: {
           destination: data.accountId,
+
         },
         footer: `Vat number for ${data.trainerName}: ${data.vatNumber}`,
       })
