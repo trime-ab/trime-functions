@@ -1,6 +1,5 @@
 import DateTime from '../DateTime/DateTime'
 import Currency from '../Currency/Currency'
-import StripePayment from './StripePayment'
 
 export interface Payment {
   id?: string

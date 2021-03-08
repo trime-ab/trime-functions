@@ -1,11 +1,13 @@
 import * as functions from 'firebase-functions'
 
 import Stripe from 'stripe'
-import { Address } from '../domain/Address/Address'
-import { SimpleDate } from '../domain/SimpleDate/SimpleDate'
+import {Address} from '../domain/Address/Address'
+import {SimpleDate} from '../domain/SimpleDate/SimpleDate'
 import Currency from '../domain/Currency/Currency'
-import { CreditCard } from '../domain/CreditCard'
-import { Payment } from '../domain/Payment'
+import {CreditCard} from '../domain/CreditCard'
+import {Payment} from '../domain/Payment'
+import {Discount} from "../domain/Discount";
+import {DiscountType} from "../domain/DiscountType";
 
 const stripe = new Stripe(functions.config().stripe.livesecretkey, {
   apiVersion: '2020-08-27',
@@ -294,12 +296,12 @@ class StripeFunctions {
 
   async createTraineeInvoiceItem(payment: Payment) {
     try {
-      const invoiceItems = stripe.invoiceItems.create({
-        customer: payment.customerId,
-        currency: 'sek',
-        description: payment.dealName,
-        amount: payment.amount * 100,
-      })
+        const invoiceItems = stripe.invoiceItems.create({
+          customer: payment.customerId,
+          currency: 'sek',
+          description: payment.dealName,
+          amount: payment.amount * 100,
+        })
       console.log('created Item')
       return invoiceItems
     } catch (error) {
@@ -307,6 +309,36 @@ class StripeFunctions {
       functions.logger.error(message, error)
       throw new functions.https.HttpsError('unknown', message, error)
     }
+  }
+
+  async createTraineeDiscountItem(data: {payment: Payment, discount: Discount}) {
+    try {
+      const {payment, discount} = data
+      const calculatedDiscount = await this.calculatedDiscount(payment, discount)
+      const invoiceItems = stripe.invoiceItems.create({
+        customer: payment.customerId,
+        currency: 'sek',
+        description: 'corporate discount 30%',
+        amount: -calculatedDiscount,
+      })
+      console.log('created DiscountItem')
+      return invoiceItems
+    } catch (error) {
+      const message = 'Unable to make items'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
+  }
+
+  async calculatedDiscount(payment: Payment, discount: Discount) {
+    const price = payment.amount
+    const discountAmount = discount.value
+
+    if (discount.type === DiscountType.PERCENTAGE) {
+      const division = await Math.round(price / 100)
+      return Math.round(division * discountAmount)
+    }
+    return null
   }
 
   async createTraineeInvoice(data: {

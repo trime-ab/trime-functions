@@ -58,6 +58,9 @@ exports.stripe = {
   createTraineeInvoiceItem: functions.https.onCall(
     stripeFunctions.createTraineeInvoiceItem,
   ),
+  createTraineeDiscountItem: functions.https.onCall(
+    stripeFunctions.createTraineeDiscountItem,
+  ),
   finaliseInvoice: functions.https.onCall(stripeFunctions.finaliseInvoice),
   retrievePaymentIntent: functions.https.onCall(
     stripeFunctions.retrievePaymentIntent,
