@@ -7,7 +7,6 @@ import Currency from '../domain/Currency/Currency'
 import {CreditCard} from '../domain/CreditCard'
 import {Payment} from '../domain/Payment'
 import {Discount} from "../domain/Discount";
-import {DiscountType} from "../domain/DiscountType";
 
 const stripe = new Stripe(functions.config().stripe.livesecretkey, {
   apiVersion: '2020-08-27',
@@ -27,7 +26,7 @@ class StripeFunctions {
 
       return customer.id
     } catch (error) {
-      let message = 'Unable to create customer account'
+      const message = 'Unable to create customer account'
       functions.logger.error(message, error)
 
       throw new functions.https.HttpsError('unknown', message, error)
@@ -40,7 +39,7 @@ class StripeFunctions {
   }) {
     try {
       return stripe.customers.update(data.stripeCustomerId, {
-        invoice_settings: { default_payment_method: data.paymentId },
+        invoice_settings: {default_payment_method: data.paymentId},
       })
     } catch (error) {
       const message = 'Unable to update account default payment'
@@ -296,12 +295,12 @@ class StripeFunctions {
 
   async createTraineeInvoiceItem(payment: Payment) {
     try {
-        const invoiceItems = stripe.invoiceItems.create({
-          customer: payment.customerId,
-          currency: 'sek',
-          description: payment.dealName,
-          amount: payment.amount * 100,
-        })
+      const invoiceItems = await stripe.invoiceItems.create({
+        customer: payment.customerId,
+        currency: 'sek',
+        description: payment.dealName,
+        amount: payment.amount * 100,
+      })
       console.log('created Item')
       return invoiceItems
     } catch (error) {
@@ -311,15 +310,15 @@ class StripeFunctions {
     }
   }
 
-  async createTraineeDiscountItem(data: {payment: Payment, discount: Discount}) {
+  async createTraineeDiscountItem(data: { payment: Payment, discount: Discount }) {
     try {
-      const {payment, discount} = data
-      const calculatedDiscount = await this.calculatedDiscount(payment, discount)
-      const invoiceItems = stripe.invoiceItems.create({
-        customer: payment.customerId,
+      const calculatedDiscount = await Math.round((data.payment.amount / 100) * 30)
+      const discountTotal = await Math.round(calculatedDiscount * 100)
+      const invoiceItems = await stripe.invoiceItems.create({
+        customer: data.payment.customerId,
         currency: 'sek',
-        description: 'corporate discount 30%',
-        amount: -calculatedDiscount,
+        description: 'corporate discount 30% off',
+        amount: -discountTotal,
       })
       console.log('created DiscountItem')
       return invoiceItems
@@ -330,17 +329,6 @@ class StripeFunctions {
     }
   }
 
-  async calculatedDiscount(payment: Payment, discount: Discount) {
-    const price = payment.amount
-    const discountAmount = discount.value
-
-    if (discount.type === DiscountType.PERCENTAGE) {
-      const division = await Math.round(price / 100)
-      return Math.round(division * discountAmount)
-    }
-    return null
-  }
-
   async createTraineeInvoice(data: {
     customerId: string
     accountId: string
@@ -348,6 +336,7 @@ class StripeFunctions {
     trainerName: string
     vatNumber: string
     paymentMethodId: string
+    online: boolean
   }) {
     try {
       const invoice = await stripe.invoices.create({
@@ -356,12 +345,12 @@ class StripeFunctions {
         collection_method: 'charge_automatically',
         application_fee_amount: data.trimeAmount,
         default_payment_method: data.paymentMethodId,
-        default_tax_rates: [functions.config().stripe.taxcode],
+        default_tax_rates: data.online ? [functions.config().stripe.taxcode_online] : [functions.config().stripe.taxcode_live],
         transfer_data: {
           destination: data.accountId,
 
         },
-        footer: `Vat number for ${data.trainerName}: ${data.vatNumber}`,
+        footer: `Trainer Name: ${data.trainerName}, VAT Number: ${data.vatNumber}`,
       })
 
       console.log('Invoice created successfully')
