@@ -312,16 +312,16 @@ class StripeFunctions {
 
   async createTraineeDiscountItem(data: { payment: Payment, discount: Discount }) {
     try {
-      const calculatedDiscount = await Math.round((data.payment.amount / 100) * 30)
-      const discountTotal = await Math.round(calculatedDiscount * 100)
-      const invoiceItems = await stripe.invoiceItems.create({
+      const calculatedDiscount = Math.round((data.payment.amount / 100) * data.discount.value)
+      const discountTotal = Math.round(calculatedDiscount * 100)
+
+      await stripe.invoiceItems.create({
         customer: data.payment.customerId,
         currency: 'sek',
         description: 'corporate discount 30% off',
-        amount: -discountTotal,
+        amount: - discountTotal,
       })
       console.log('created DiscountItem')
-      return invoiceItems
     } catch (error) {
       const message = 'Unable to make items'
       functions.logger.error(message, error)
@@ -339,13 +339,14 @@ class StripeFunctions {
     online: boolean
   }) {
     try {
+
       const invoice = await stripe.invoices.create({
         customer: data.customerId,
         auto_advance: false,
         collection_method: 'charge_automatically',
         application_fee_amount: data.trimeAmount,
         default_payment_method: data.paymentMethodId,
-        default_tax_rates: data.online ? [functions.config().stripe.taxcode_online] : [functions.config().stripe.taxcode_live],
+        default_tax_rates: [functions.config().stripe.taxcode_live],
         transfer_data: {
           destination: data.accountId,
 
