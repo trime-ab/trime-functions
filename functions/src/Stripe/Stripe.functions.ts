@@ -346,7 +346,7 @@ class StripeFunctions {
         collection_method: 'charge_automatically',
         application_fee_amount: data.trimeAmount,
         default_payment_method: data.paymentMethodId,
-        default_tax_rates: [functions.config().stripe.taxcode_live],
+        default_tax_rates: [functions.config().stripe.taxcode],
         transfer_data: {
           destination: data.accountId,
 
