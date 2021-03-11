@@ -171,51 +171,48 @@ class NotificationsFunctions {
     const sessionData = change.after.data();
     if (sessionData.cancelled === true) {
       const db = admin.firestore();
-
+      console.log('hello')
       const trainee = await notificationService.getTrainee(db, sessionData.traineeId);
       const trainer = await notificationService.getTrainer(db, sessionData.trainerId);
 
-      if (sessionData.cancelledByUserType === 'TRAINEE') {
-        if (trainer.notificationSettings.events) {
-          const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
-            notification: {
-              title: "Your booking was cancelled!",
-              body: `your booking for ${sessionData.start} was cancelled by ${trainee.firstName} ${trainee.lastName}.`,
-              badge: '1',
-              sound: 'default',
-            },
-            data: {
-              userId: trainer.userId,
-              type: NotificationType.CANCELLED_BOOKING
-            }
+
+      if (trainer.notificationSettings.events) {
+        const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+          notification: {
+            title: "Your booking was cancelled!",
+            body: `your booking for ${sessionData.name} with ${trainee.firstName} ${trainee.lastName} was cancelled.` ,
+            badge: '1',
+            sound: 'default',
+          },
+          data: {
+            userId: trainer.userId,
+            type: NotificationType.CANCELLED_BOOKING
           }
-          console.log(payload)
-          await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
-          console.log(
-            `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
         }
-      }
-      if (sessionData.cancelledByUserType === 'TRAINER') {
-        if (trainee.notificationSettings.events) {
-          const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
-            notification: {
-              title: "Your booking was cancelled!",
-              body: `your booking for ${sessionData.start} was cancelled by ${trainer.firstName} ${trainer.lastName}.`,
-              badge: '1',
-              sound: 'default',
-            },
-            data: {
-              userId: trainee.userId,
-              type: NotificationType.CANCELLED_BOOKING
-            }
-          }
-          console.log(payload)
-          await notificationService.send(trainer.userId, trainee.userId, trainer.userId, payload)
-          console.log(
-            `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
-        }
+        console.log(payload)
+        await notificationService.send(trainee.userId, trainer.userId, trainee.userId, payload)
+        console.log(
+          `Message has been successfully sent to ${trainer?.firstName} ${trainer?.lastName}`)
       }
 
+      if (trainee.notificationSettings.events) {
+        const payload: TypedMessagingPayload<NotificationDataCancelledBooking> = {
+          notification: {
+            title: "Your booking was cancelled!",
+            body: `your booking for ${sessionData.name} with ${trainer.firstName} ${trainer.lastName} was cancelled.`,
+            badge: '1',
+            sound: 'default',
+          },
+          data: {
+            userId: trainee.userId,
+            type: NotificationType.CANCELLED_BOOKING
+          }
+        }
+        console.log(payload)
+        await notificationService.send(trainer.userId, trainee.userId, trainer.userId, payload)
+        console.log(
+          `Message has been successfully sent to ${trainee?.firstName} ${trainee?.lastName}`)
+      }
     }
   }
 }
