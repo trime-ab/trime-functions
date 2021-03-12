@@ -75,7 +75,8 @@ class NotificationService {
     async send<T extends DataMessagePayload>(senderUserId: string, recipientUserId: string, subjectId: string, payload: TypedMessagingPayload<T>) {
         const db = admin.firestore();
         const devices = await this.getDevices(db, recipientUserId);
-        const fcmKeys = this.getFcmKeys(devices);
+        const fcmKey = this.getFcmKey(devices);
+        console.log(fcmKey)
         if (payload.data.type === NotificationType.NEW_BOOKING) {
             payload.data.notificationLogId = await this.addNotificationLog(devices, senderUserId, recipientUserId, subjectId)
         }
@@ -85,16 +86,14 @@ class NotificationService {
         if (payload.data.type === NotificationType.BOOKING_REMINDER) {
             payload.data.notificationLogId = await this.BookingReminderNotificationLog(devices, recipientUserId, subjectId)
         }
-        await admin.messaging().sendToDevice(fcmKeys, payload);
+        await admin.messaging().sendToDevice(fcmKey, payload);
     }
 
 
-    private getFcmKeys(devices: Device[]) {
-        const fcmKeys: string[] = [];
-        devices.forEach(device => {
-            device.fcmKeys.forEach(key => fcmKeys.push(key))
-        });
-        return fcmKeys;
+    private getFcmKey(devices: Device[]) {
+      console.log(devices)
+        return devices[0].fcmKey
+
     }
 
     private async getDevices(db: admin.firestore.Firestore, userId: string): Promise<Device[]> {
@@ -102,6 +101,7 @@ class NotificationService {
             .collection("devices")
             .where("userId", "==", userId);
         const devices = await devicesRef.get();
+        console.log(devices)
         return devices.docs.map(d => ({id: d.id, ...d.data()})) as Device[];
     }
 

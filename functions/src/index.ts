@@ -16,9 +16,7 @@ exports.notifications = {
   onBookedDeal: functions.firestore
     .document('sessions/{sessions}')
     .onUpdate(notificationsFunctions.onBookedDeal),
-  onCancelledDeal: functions.firestore
-    .document('sessions/{sessions}')
-    .onUpdate(notificationsFunctions.onCancelledDeal),
+  triggerCancelledDeal: functions.https.onCall(notificationsFunctions.triggerCancelledDeal),
   trainerVerificationNotification: functions.firestore
     .document('trainers/{trainers}')
     .onUpdate(notificationsFunctions.sendTrainerVerifiedNotification),
