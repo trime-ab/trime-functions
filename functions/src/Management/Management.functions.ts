@@ -75,15 +75,22 @@ class ManagementFunctions {
                 <br />
                 <p>We’re excited to welcome you to Trime!</p>
                 <br />
-                <p>Now that you’ve created your profile, it’s time to find you the perfect trainer(s).</p>
+                <p>Now that you’ve created your profile, it’s time to get your account verified so that your profile and workout sessions are visible in the app to be booked by customers.</p>
                 <br />
-                <p>At Trime, we only work with certified trainers.</p>
-                <p>Every trainer application is reviewed by an actual Trime human, to make sure you get the experience you want. </p>
+                <p>Make sure you have the following items uploaded on your profile:</p>
                 <br />
-                <p>In the app, you can find the trainer and training that’s perfect for you.</p>
-                <p>Select between map view and list view, filter on price, type of training or location. </p>
+                <ul>
+                <li>A complete profile with your training certificate and link to your training provider’s website so that a Trime human can review and approve your profile.</li>
+                <li>Prepare your Workouts (these are your training session that you offer to trainees).</li>
+                <li>Add Company details incl. bank account under settings tab in the app. We use Stripe for real time payments from customers to you.</li>
+                <li>Professional insurance is required.</li>
+                </ul>
                 <br />
-                <p>So go ahead, dive in, get cracking… And have fun!</p>
+                <p>Your account needs to be verified, company details in place and have at least one Workout, for your profile to be visible and bookable in the app.</p>
+                <br />
+                <p>The review process can take up to 72 hours so please bear with us in that time. If there are any questions or we need more information we will get in touch with you.</p>
+                <br />
+                <p>So, go ahead, dive in, get cracking... And have fun!</p>
                 <br />
                 <p>The Trime Team</p>
             `,
