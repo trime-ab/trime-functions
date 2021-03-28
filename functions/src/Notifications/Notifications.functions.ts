@@ -50,10 +50,15 @@ class NotificationsFunctions {
   private async sendTraineeSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
     if (trainee.notificationSettings.events) {
       if (!session.cancelled) {
-        const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
+          const start = session?.start.toDate();
+          let minutes = String(start?.getMinutes())
+          if (minutes.length === 1) {
+            minutes = `0${minutes}`
+          }
+          const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
           notification: {
             title: 'Reminder: upcoming session',
-            body: `Your ${session?.name} session with ${trainer?.firstName} ${trainer?.lastName} is due to start within an hour`,
+            body: `Your ${session?.name} session with ${trainer?.firstName} ${trainer?.lastName} is due to start at ${start?.getHours()}:${minutes}`,
             badge: '1',
             sound: 'default',
 
@@ -75,10 +80,15 @@ class NotificationsFunctions {
   private async sendTrainerSessionReminder(session: Session, trainer: Trainer, trainee: Trainee) {
     if (trainer.notificationSettings.events) {
       if (!session.cancelled) {
+        const start = session?.start.toDate();
+        let minutes = String(start?.getMinutes())
+        if (minutes.length === 1) {
+          minutes = `0${minutes}`
+        }
         const payload: TypedMessagingPayload<NotificationDataSessionReminder> = {
           notification: {
             title: 'Reminder: upcoming session',
-            body: `Your ${session.name} session with ${trainee?.firstName} ${trainee?.lastName} is due to start within an hour`,
+            body: `Your ${session.name} session with ${trainee?.firstName} ${trainee?.lastName} is due to start at ${start?.getHours()}:${minutes}`,
             badge: '1',
             sound: 'default',
           },
