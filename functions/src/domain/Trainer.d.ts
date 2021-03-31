@@ -8,6 +8,8 @@ export interface Trainer{
   firstName: string
   lastName: string
   isApproved: boolean
+  stripeAccountId: string
+  vat: string
   calenderSettings: {
     calenderId: string
   }

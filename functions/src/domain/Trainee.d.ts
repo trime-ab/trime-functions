@@ -4,7 +4,8 @@ export interface Trainee {
         messages: boolean;
     },
     userId: string;
-    id: string
-    firstName: string
-    lastName: string
+    id: string;
+    firstName: string;
+    lastName: string;
+    stripeCustomerId: string;
 }

@@ -110,7 +110,6 @@ class NotificationService {
         const trainerSnapshot = await trainerRef.get();
         return { id: trainerSnapshot.id, ...trainerSnapshot.data()} as Trainer;
     }
-    c
 
     async getTrainee(db: admin.firestore.Firestore, traineeId: string): Promise<Trainee> {
         const traineeRef = db.collection("trainees").doc(traineeId);

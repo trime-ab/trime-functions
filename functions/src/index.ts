@@ -47,6 +47,7 @@ exports.stripe = {
   createTrainerBankAccount: functions.https.onCall(
     stripeFunctions.createTrainerBankAccount,
   ),
+  preparePayment: functions.https.onCall(stripeFunctions.preparePayment),
   getAccount: functions.https.onCall(stripeFunctions.getAccount),
   deleteBankAccount: functions.https.onCall(stripeFunctions.deleteBankAccount),
   createRefund: functions.https.onCall(stripeFunctions.createRefund),

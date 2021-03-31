@@ -7,6 +7,10 @@ import Currency from '../domain/Currency/Currency'
 import {CreditCard} from '../domain/CreditCard'
 import {Payment} from '../domain/Payment'
 import {Discount} from "../domain/Discount";
+import {Trainee} from "../domain/Trainee";
+import {Trainer} from "../domain/Trainer";
+import * as admin from "firebase-admin";
+import {stripeService} from "./Stipe.service";
 
 const stripe = new Stripe(functions.config().stripe.livesecretkey, {
   apiVersion: '2020-08-27',
@@ -336,7 +340,6 @@ class StripeFunctions {
     trainerName: string
     vatNumber: string
     paymentMethodId: string
-    online: boolean
   }) {
     try {
 
@@ -452,6 +455,68 @@ class StripeFunctions {
       functions.logger.error(message, error)
       throw new functions.https.HttpsError('unknown', message, error)
     }
+  }
+
+  async preparePayment(data: {
+    paymentId: string,
+    traineeId: string,
+    trainerId: string,
+    paymentMethodId: string,
+    discount?: Discount,
+  }) {
+      try {
+        const { paymentId, traineeId, trainerId, paymentMethodId, discount } = data
+        const db = admin.firestore()
+
+        const trainee: Trainee = await stripeService.getTrainee(db, traineeId)
+        const trainer: Trainer = await stripeService.getTrainer(db, trainerId)
+        const payment: Payment = await stripeService.getPayment(db, paymentId)
+
+        await stripe.invoiceItems.create({
+          customer: payment.customerId,
+          currency: 'sek',
+          description: payment.dealName,
+          amount: payment.amount * 100,
+        })
+
+        if (discount) {
+          console.log(discount)
+          // await this.createTraineeDiscountItem({payment, discount})
+          const calculatedDiscount = Math.round((payment.amount / 100) * data.discount.value)
+          const discountTotal = Math.round(calculatedDiscount * 100)
+
+          await stripe.invoiceItems.create({
+            customer: payment.customerId,
+            currency: 'sek',
+            description: 'corporate discount 30% off',
+            amount: - discountTotal,
+          })
+        }
+
+        let invoice = await stripe.invoices.create({
+          customer: trainee.stripeCustomerId,
+          auto_advance: false,
+          collection_method: 'charge_automatically',
+          application_fee_amount: payment.trimeAmount,
+          default_payment_method: paymentMethodId,
+          default_tax_rates: [functions.config().stripe.taxcode],
+          transfer_data: {
+            destination: trainer.stripeAccountId,
+
+          },
+          footer: `Trainer Name: ${trainer.firstName} ${trainer.lastName}, VAT Number: ${trainer.vat}`,
+        })
+
+        invoice = await stripe.invoices.finalizeInvoice(invoice.id, {
+          auto_advance: true,
+        })
+
+        return stripe.paymentIntents.retrieve(invoice.payment_intent as string)
+      } catch (error) {
+        const message = 'Unable to complete payment'
+        functions.logger.error(message, error)
+        throw new functions.https.HttpsError('unknown', message, error)
+      }
   }
 }
 
