@@ -370,7 +370,7 @@ class StripeFunctions {
   async finaliseInvoice(data: { invoiceId: string }): Promise<Stripe.Invoice> {
     console.log('Finalising invoice')
     return stripe.invoices.finalizeInvoice(data.invoiceId, {
-      auto_advance: true,
+      auto_advance: false,
     })
   }
 
@@ -508,7 +508,7 @@ class StripeFunctions {
         })
 
         invoice = await stripe.invoices.finalizeInvoice(invoice.id, {
-          auto_advance: true,
+          auto_advance: false,
         })
 
         return stripe.paymentIntents.retrieve(invoice.payment_intent as string)
@@ -517,6 +517,16 @@ class StripeFunctions {
         functions.logger.error(message, error)
         throw new functions.https.HttpsError('unknown', message, error)
       }
+  }
+  markAsPaid(request, response) {
+    const sig = request.headers["stripe-signature"];
+
+    try {
+      const event = stripe.webhooks.constructEvent(request.rawBody, sig, functions.config().stripe.signing)
+      functions.logger.log(event)
+    } catch (error) {
+      return response.status(400).end()
+    }
   }
 }
 

@@ -30,6 +30,8 @@ class NotificationsFunctions {
 
       const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
+      sessions.filter(s => s.cancelled === false)
+
       for (const session of sessions) {
         if (!session.cancelled) {
           const trainee = trainees.find(t => t.id === session.traineeId)

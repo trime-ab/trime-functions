@@ -4,9 +4,13 @@ import mailChimpFunctions from './MailChimp/MailChimp.functions'
 import {stripeFunctions} from './Stripe/Stripe.functions'
 import {notificationsFunctions} from './Notifications/Notifications.functions'
 import {managementFunctions} from './Management/Management.functions'
+import Stripe from 'stripe'
 
 const admin = require('firebase-admin')
 admin.initializeApp({})
+const stripe = new Stripe(functions.config().stripe.livesecretkey, {
+  apiVersion: '2020-08-27',
+})
 
 exports.mailchimp = {
   add: functions.https.onRequest(mailChimpFunctions.add),
@@ -82,3 +86,15 @@ exports.management = {
     .document('trainers/{trainers}')
     .onCreate(managementFunctions.trainerWelcomeEmail),
 }
+
+exports.webhooks = functions.https.onRequest((request: any, response: any) => {
+
+  const sig = request.headers["stripe-signature"];
+
+  try {
+    const event = stripe.webhooks.constructEvent(request.rawBody, sig, functions.config().stripe.signing)
+    functions.logger.info(event)
+  } catch (error) {
+    return response.status(400).end;
+  }
+});
