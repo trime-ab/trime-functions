@@ -30,6 +30,8 @@ class NotificationsFunctions {
 
       const logs = await notificationService.getNotificationLogs(sessions.map(s => s.id))
 
+      logs.filter(l => l.reminderSent === false)
+
       sessions.filter(s => s.cancelled === false)
 
       for (const session of sessions) {
@@ -37,12 +39,15 @@ class NotificationsFunctions {
           const trainee = trainees.find(t => t.id === session.traineeId)
           const trainer = trainers.find(t => t.id === session.trainerId)
 
-          if (this.sessionReminderHasNotBeenSent(logs, session, trainee.userId)) {
+          if (this.sessionReminderHasNotBeenSent(logs)) {
             await this.sendTraineeSessionReminder(session, trainer, trainee);
+            logs.forEach(l => notificationService.setReminderSent(l))
           }
 
-          if (this.sessionReminderHasNotBeenSent(logs, session, trainer.userId)) {
+          if (this.sessionReminderHasNotBeenSent(logs)) {
             await this.sendTrainerSessionReminder(session, trainer, trainee);
+
+            logs.forEach(l => notificationService.setReminderSent(l))
           }
         }
       }
@@ -109,8 +114,8 @@ class NotificationsFunctions {
     }
   }
 
-  private sessionReminderHasNotBeenSent(logs: NotificationLog[], session: Session, recipientUserId: string) {
-    return !logs.some(log => log.subjectId === session.id && log.recipientUserId === recipientUserId);
+  private sessionReminderHasNotBeenSent(logs: NotificationLog[]) {
+    return logs.some(log => log.reminderSent === false);
   }
 
   async onBookedDeal(change: any) {

@@ -20,6 +20,7 @@ class NotificationService {
             senderUserId: 'System',
             type: NotificationType.BOOKING_REMINDER,
             subjectId: subjectId,
+            reminderSent: true
         }
 
         const collectionRef = db.collection(this.COLLECTION)
@@ -37,6 +38,7 @@ class NotificationService {
         senderUserId: senderUserId,
         type: NotificationType.CANCELLED_BOOKING,
         subjectId: subjectId,
+        reminderSent: true
       }
 
 
@@ -56,12 +58,21 @@ class NotificationService {
             senderUserId: senderUserId,
             type: NotificationType.NEW_BOOKING,
             subjectId: subjectId,
+            reminderSent: false
         }
         const collectionRef = db.collection(this.COLLECTION)
         const doc = collectionRef.doc()
         await doc.set(notificationLog)
         return doc.id
     }
+
+    async setReminderSent(log: NotificationLog) {
+      const db = admin.firestore();
+      const logRef = db.collection(this.COLLECTION).doc(log.id)
+      await logRef.update({reminderSent: true})
+
+    }
+
 
 
     async getNotificationLogs(subjectIds: string[]): Promise<NotificationLog[]> {

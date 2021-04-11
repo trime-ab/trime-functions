@@ -8,4 +8,5 @@ export class NotificationLog {
   type: NotificationType
   deviceIds: string[]
   subjectId: string
+  reminderSent: boolean
 }

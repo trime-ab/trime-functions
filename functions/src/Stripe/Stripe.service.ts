@@ -32,7 +32,7 @@ class StripeService {
     const sessionsRef = db.collection('sessions')
     const sessionsSnapshot = await sessionsRef.where('paid', '==', false).get()
 
-    await sessionsSnapshot.forEach(s => {
+    sessionsSnapshot.forEach(s => {
       const session = {id: s.id, ...s.data()}
       sessions.push(session as Session)
     })
@@ -45,32 +45,21 @@ class StripeService {
     const paymentRef = db.collection("payments")
     const paymentsSnapshot = await paymentRef.where('sessionId', '==', sessionId).get()
 
-    await paymentsSnapshot.forEach(p => {
+    paymentsSnapshot.forEach(p => {
       const payment = {id: p.id, ...p.data()}
       payments.push(payment as Payment)
     })
-
     return payments
   }
 
   async markPaymentAsPaid(db: admin.firestore.Firestore, paymentId: string) {
     const paymentRef = db.collection("payments").doc(paymentId)
-    await paymentRef.get().then((doc) => {
-      if (doc.exists) {
-        paymentRef.update({successful: true})
-      }
-      return
-    })
+    await paymentRef.update({successful: true})
   }
 
   async markSessionAsPaid(db: admin.firestore.Firestore, sessionId: string) {
     const sessionRef = db.collection('sessions').doc(sessionId)
-    await sessionRef.get().then((doc) => {
-      if (doc.exists) {
-        sessionRef.update({paid: true})
-      }
-      return
-    })
+    await sessionRef.update({paid: true})
   }
 }
 
