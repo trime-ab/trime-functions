@@ -32,6 +32,8 @@ exports.bookingReminderNotification = functions.pubsub
 
 exports.backupProductionDatabase = functions.pubsub.schedule('every 24 hours').onRun(managementFunctions.backupDatabase)
 
+exports.checkStripeForPayment = functions.pubsub.schedule('every 24 hours').onRun(stripeFunctions.checkStripeForPayment)
+
 exports.stripe = {
   createCustomer: functions.https.onCall(stripeFunctions.createCustomer),
   updateDefaultPayment: functions.https.onCall(
@@ -74,7 +76,8 @@ exports.stripe = {
   updateAccountDetails: functions.https.onCall(
     stripeFunctions.updateAccountDetails,
   ),
-  addPromotionalCode: functions.https.onCall(stripeFunctions.addPromotionalCode)
+  addPromotionalCode: functions.https.onCall(stripeFunctions.addPromotionalCode),
+  manuallyCheckStripeForPayment: functions.https.onCall(stripeFunctions.checkStripeForPayment),
 }
 
 exports.management = {

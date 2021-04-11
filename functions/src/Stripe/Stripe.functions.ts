@@ -10,7 +10,7 @@ import {Discount} from "../domain/Discount";
 import {Trainee} from "../domain/Trainee";
 import {Trainer} from "../domain/Trainer";
 import * as admin from "firebase-admin";
-import {stripeService} from "./Stipe.service";
+import {stripeService} from "./Stripe.service";
 
 const stripe = new Stripe(functions.config().stripe.livesecretkey, {
   apiVersion: '2020-08-27',
@@ -518,14 +518,26 @@ class StripeFunctions {
         throw new functions.https.HttpsError('unknown', message, error)
       }
   }
-  markAsPaid(request, response) {
-    const sig = request.headers["stripe-signature"];
+  async checkStripeForPayment() {
+    const db = admin.firestore();
 
-    try {
-      const event = stripe.webhooks.constructEvent(request.rawBody, sig, functions.config().stripe.signing)
-      functions.logger.log(event)
-    } catch (error) {
-      return response.status(400).end()
+    const oneDayBefore = new Date()
+    oneDayBefore.setHours(oneDayBefore.getHours() - 24);
+
+    const sessions = await stripeService.getSessions(db)
+    sessions.filter(s => s.start.toDate() > oneDayBefore)
+
+    for (const s of sessions) {
+      const payments = await stripeService.getPaymentsFromSession(db, s.id)
+
+      for (const p of payments) {
+        const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.retrieve(p.externalId)
+
+        if (paymentIntent.status === 'succeeded') {
+          await stripeService.markPaymentAsPaid(db, p.id)
+          await stripeService.markSessionAsPaid(db, s.id)
+        }
+      }
     }
   }
 }
