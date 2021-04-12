@@ -288,6 +288,7 @@ class StripeFunctions {
         payment_intent: payment.externalId,
         amount: payment.amount * 100,
         reason: 'requested_by_customer',
+        reverse_transfer: true,
       })
       console.log('refund was made successfully')
     } catch (error) {
@@ -531,11 +532,13 @@ class StripeFunctions {
       const payments = await stripeService.getPaymentsFromSession(db, s.id)
 
       for (const p of payments) {
-        const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.retrieve(p.externalId)
+        if (p.externalId) {
+          const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.retrieve(p.externalId)
 
-        if (paymentIntent.status === 'succeeded') {
-          await stripeService.markPaymentAsPaid(db, p.id)
-          await stripeService.markSessionAsPaid(db, s.id)
+          if (paymentIntent.status === 'succeeded') {
+            await stripeService.markPaymentAsPaid(db, p.id)
+            await stripeService.markSessionAsPaid(db, s.id)
+          }
         }
       }
     }
