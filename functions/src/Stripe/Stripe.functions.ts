@@ -4,7 +4,6 @@ import Stripe from 'stripe'
 import {Address} from '../domain/Address/Address'
 import {SimpleDate} from '../domain/SimpleDate/SimpleDate'
 import Currency from '../domain/Currency/Currency'
-import {CreditCard} from '../domain/CreditCard'
 import {Payment} from '../domain/Payment'
 import {Discount} from "../domain/Discount";
 import {Trainee} from "../domain/Trainee";
@@ -12,8 +11,10 @@ import {Trainer} from "../domain/Trainer";
 import * as admin from "firebase-admin";
 import {stripeService} from "./Stripe.service";
 
+const API_VERSION = '2020-08-27'
+
 const stripe = new Stripe(functions.config().stripe.livesecretkey, {
-  apiVersion: '2020-08-27',
+  apiVersion: API_VERSION,
 })
 
 class StripeFunctions {
@@ -34,109 +35,6 @@ class StripeFunctions {
       functions.logger.error(message, error)
 
       throw new functions.https.HttpsError('unknown', message, error)
-    }
-  }
-
-  async updateDefaultPayment(data: {
-    stripeCustomerId: string
-    paymentId: string
-  }) {
-    try {
-      return stripe.customers.update(data.stripeCustomerId, {
-        invoice_settings: {default_payment_method: data.paymentId},
-      })
-    } catch (error) {
-      const message = 'Unable to update account default payment'
-      functions.logger.error(message, error)
-
-      throw new functions.https.HttpsError('unknown', message, error)
-    }
-  }
-
-  async createCustomerSetupIntent(data: {
-    stripeCustomerId: string
-    cardId: string
-  }) {
-    try {
-      // DO NOT CHANGE CONST BELOW
-      const result = await stripe.setupIntents.create({
-        payment_method_types: ['card'],
-        confirm: true,
-        customer: data.stripeCustomerId,
-        usage: 'on_session',
-        payment_method: data.cardId,
-        payment_method_options: {
-          card: {
-            request_three_d_secure: 'automatic',
-          },
-        },
-      })
-      return result
-    } catch (error) {
-      console.log('My name is jeff')
-      const message = `Unable to attach card to customer, ${data.stripeCustomerId}`
-      functions.logger.error(message, error)
-      console.log(Stripe.StripeError)
-      throw new functions.https.HttpsError('unknown', message, error)
-    }
-  }
-
-  async createCustomerCard(data: CreditCard) {
-    try {
-      const card = await stripe.paymentMethods.create({
-        type: 'card',
-        card: {
-          number: data.number,
-          exp_month: data.expMonth,
-          exp_year: data.expYear,
-          cvc: data.cvc,
-        },
-      })
-      console.log('card sent')
-      console.log(card.id)
-      return card.id
-    } catch (error) {
-      const message = 'Unable to create Card Token'
-      functions.logger.error(message, error)
-      throw new functions.https.HttpsError('unknown', message, error)
-    }
-  }
-
-  async getPaymentMethod(data: { paymentMethod: string }) {
-    try {
-      console.log('getting payment method')
-      return stripe.paymentMethods.retrieve(data.paymentMethod)
-    } catch (error) {
-      const message = 'Unable to get payment method'
-      functions.logger.error(message, error)
-      throw new functions.https.HttpsError('not-found', message, error)
-    }
-  }
-
-  async getCustomer(stripeCustomerId: string) {
-    try {
-      return stripe.customers.retrieve(stripeCustomerId, {
-        expand: ['invoice_settings.default_payment_method.card'],
-      })
-    } catch (error) {
-      console.warn('Unable to get customer', stripeCustomerId)
-      const message = 'Unable to get Customer'
-      functions.logger.error(message, error)
-      throw new functions.https.HttpsError('not-found', message, error)
-    }
-  }
-
-  async deleteCard(data: { default_payment_method: string }) {
-    try {
-      return stripe.paymentMethods.detach(data.default_payment_method)
-    } catch (error) {
-      console.warn(
-        'Unable to delete card from account',
-        data.default_payment_method,
-      )
-      const message = 'Unable to delete card'
-      functions.logger.error(message, error)
-      throw new functions.https.HttpsError('not-found', message, error)
     }
   }
 
@@ -458,15 +356,26 @@ class StripeFunctions {
     }
   }
 
+  async getEphemeralKeys(data: { customerId: string}) {
+    try {
+      return stripe.ephemeralKeys.create({
+        customer: data.customerId
+      }, {apiVersion: API_VERSION})
+    } catch (error) {
+      const message = 'Unable to add fetch ephemeral key'
+      functions.logger.error(message, error)
+      throw new functions.https.HttpsError('unknown', message, error)
+    }
+  }
+
   async preparePayment(data: {
     paymentId: string,
     traineeId: string,
     trainerId: string,
-    paymentMethodId: string,
     discount?: Discount,
   }) {
       try {
-        const { paymentId, traineeId, trainerId, paymentMethodId, discount } = data
+        const { paymentId, traineeId, trainerId, discount } = data
         const db = admin.firestore()
 
         const trainee: Trainee = await stripeService.getTrainee(db, traineeId)
@@ -499,7 +408,6 @@ class StripeFunctions {
           auto_advance: false,
           collection_method: 'charge_automatically',
           application_fee_amount: payment.trimeAmount,
-          default_payment_method: paymentMethodId,
           default_tax_rates: [functions.config().stripe.taxcode],
           transfer_data: {
             destination: trainer.stripeAccountId,

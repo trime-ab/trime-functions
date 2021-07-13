@@ -36,24 +36,13 @@ exports.checkStripeForPayment = functions.pubsub.schedule('every 24 hours').onRu
 
 exports.stripe = {
   createCustomer: functions.https.onCall(stripeFunctions.createCustomer),
-  updateDefaultPayment: functions.https.onCall(
-    stripeFunctions.updateDefaultPayment,
-  ),
-  createCustomerCard: functions.https.onCall(
-    stripeFunctions.createCustomerCard,
-  ),
-  createCustomerSetupIntent: functions.https.onCall(
-    stripeFunctions.createCustomerSetupIntent,
-  ),
-  getPaymentMethod: functions.https.onCall(stripeFunctions.getPaymentMethod),
-  getCustomer: functions.https.onCall(stripeFunctions.getCustomer),
-  deleteCard: functions.https.onCall(stripeFunctions.deleteCard),
   createAccount: functions.https.onCall(stripeFunctions.createAccount),
   addBankToAccount: functions.https.onCall(stripeFunctions.addBankToAccount),
   createTrainerBankAccount: functions.https.onCall(
     stripeFunctions.createTrainerBankAccount,
   ),
   preparePayment: functions.https.onCall(stripeFunctions.preparePayment),
+  getEphemeralKeys: functions.https.onCall(stripeFunctions.getEphemeralKeys),
   getAccount: functions.https.onCall(stripeFunctions.getAccount),
   deleteBankAccount: functions.https.onCall(stripeFunctions.deleteBankAccount),
   createRefund: functions.https.onCall(stripeFunctions.createRefund),
